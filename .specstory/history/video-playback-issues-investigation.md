@@ -1238,6 +1238,542 @@ Lets put these in task and start working on it
 
 ---
 
+_**Assistant**_
+
+I'll update the `.cursorrules` file with our new tasks and improvement plan.
+
+---
+
+_****_
+
+```diff
+  # Scratchpad
+  
+- ## Current Task: Video Processing Pipeline Implementation
+- 
+- ### Stage 1: Video Download and Audio Extraction
+- [X] Create pipeline directory structure
+- [X] Implement VideoDownloader class
+-   [X] Support for YouTube videos
+-   [X] Support for Loom videos
+-   [X] Progress tracking and logging
+-   [X] Error handling and cleanup
+- [X] Implement AudioExtractor class
+-   [X] FFmpeg integration for audio extraction
+-   [X] WAV format with correct parameters (mono, 16kHz)
+-   [X] Audio format validation
+-   [X] Error handling and cleanup
+- [X] Create comprehensive test suite
+-   [X] Unit tests for downloader
+-   [X] Unit tests for audio extractor
+-   [X] Integration test for complete stage
+- [X] Update project structure in .cursorrules
+- 
+- ### Stage 2: Transcription Service Implementation
+- [X] Create directory structure
+- [X] Design transcription service interface
+- [X] Implement DeepgramTranscriber class
+-   [X] Deepgram API integration
+-   [X] Audio format validation
+-   [X] Error handling and retries
+-   [X] Progress tracking and logging
+- [X] Create test suite
+-   [X] Unit tests for transcriber
+-   [X] Integration test for complete stage 2
+- [X] Add database integration for storing transcriptions
+-   [X] Use Transcription model
+-   [X] Store detailed metadata
+-   [X] Handle existing transcriptions
+-   [X] Proper error handling
+- [X] Add documentation for transcription service
+-   [X] Module level docstrings
+-   [X] Class and method documentation
+-   [X] Type hints and return values
+-   [X] Examples and usage instructions
+- [X] Update project structure in .cursorrules
+- 
+- ### Stage 3: Video Segmentation Implementation
+- [X] Design segmentation service interface
+- [X] Implement SegmentProcessor class
+-   [X] Segment boundary detection (pauses, speaker changes)
+-   [X] Speaker diarization handling
+-   [X] Embedding generation with OpenAI
+-   [X] Summary generation with GPT-4
+-   [X] Progress tracking and logging
+- [X] Add database integration
+-   [X] Use Segment model
+-   [X] Store embeddings with pgvector
+-   [X] Handle batch operations efficiently
+-   [X] Implement proper error handling
+- [X] Create test suite
+-   [X] Unit tests for segment processor
+-   [X] Integration tests for complete stage
+-   [X] Tests for embedding and summary generation
+- [X] Add documentation
+-   [X] Module level docstrings
+-   [X] Class and method documentation
+-   [X] Type hints and return values
+-   [X] Examples and usage instructions
+- 
+- ### Lessons Learned from Stage 2
+- - Use nova-3-general model for best Korean language support
+- - Store raw API response in JSONB for flexibility
+- - Keep processed data separate from raw response
+- - Track detailed metadata about transcription process
+- - Use proper error handling and logging
+- - Implement exponential backoff for retries
+- - Validate audio files before processing
+- - Check for existing transcriptions to avoid duplicates
+- - Use database transactions for data consistency
+- - Handle database errors gracefully
+- - Log all operations with proper context
+- - Use proper connection pooling
+- - Implement circuit breakers for external services
+- - Add proper timeout handling
+- - Test error conditions thoroughly
+- - Mock external services in tests
+- - Use proper test isolation
+- - Clean up test data after tests
+- - Test retry logic and error handling
+- - Verify connection pool behavior
+- - Test SSL and security settings
+- - Include integration tests
+- - Test migration scripts
+- - Use pytest fixtures for common test data
+- - Mock Deepgram API calls in tests
+- - Test progress tracking and error handling
+- - Validate audio format in tests
+- - Test database operations with mocked responses
+- - Use AsyncMock for async functions
+- - Test both success and error paths
+- - Verify proper cleanup on errors
+- - Test with realistic test data
+- - Include docstrings in test functions
+- - Test transcription quality for Korean text
+- - Verify metadata updates
+- - Test batch processing efficiency
+- - Validate database storage format
+- 
+- ### Integration Testing Best Practices
+- - Use temporary directories for test storage
+- - Clean up all resources after tests (files, database records)
+- - Test the complete pipeline end-to-end
+- - Use short, public test videos for integration tests
+- - Mock external services when appropriate
+- - Log each step of the pipeline for debugging
+- - Validate intermediate results at each step
+- - Use proper error handling and cleanup
+- - Track test progress with descriptive logging
+- - Handle both success and failure cases
+- - Verify database state after operations
+- - Clean up database records in finally block
+- - Use context managers for resource cleanup
+- - Keep test videos small and accessible
+- - Document test requirements and setup
+- - Use pytest fixtures for common setup
+- - Handle API rate limits in integration tests
+- - Validate all transcription properties
+- - Check both metadata and content
+- - Ensure proper error propagation
+- - Use meaningful test data
+- - Include cleanup in finally block
+- - Log all cleanup operations
+- - Handle cleanup failures gracefully
+- 
+- ### API Schema Organization
+- 
+- #### Schema Class Hierarchy
+- - Base schema classes should contain common attributes (e.g., `VideoBase`)
+- - Create separate classes for:
+-   - Creation requests (e.g., `VideoCreate`)
+-   - Update requests (e.g., `VideoUpdate`)
+-   - Database representation (e.g., `VideoInDB`)
+-   - API responses (e.g., `VideoResponse`)
+-   - List responses (e.g., `VideoList`)
+-   - Search/Query parameters (e.g., `VideoSearchQuery`)
+- 
+- #### Schema Best Practices
+- 1. Use descriptive class names that indicate purpose
+- 2. Include docstrings for all schema classes
+- 3. Use proper type hints and Pydantic Field validations
+- 4. Keep validation rules in schemas, not database models
+- 5. Use Optional[] for nullable fields
+- 6. Include field descriptions in Field() declarations
+- 7. Use appropriate base classes (BaseModel)
+- 8. Group related schemas in the same file
+- 9. Import from `src.pipeline.types` for enums
+- 10. Never import from `src.db.models` in schemas
+- 
+- #### Schema File Organization
+- - Keep all API schemas in `src/api/schemas/`
+- - One file per resource (e.g., `video.py`, `segment.py`)
+- - Import only what's needed from Pydantic
+- - Use consistent naming patterns across schema files
+- - Include proper type hints and validations
+- - Document all fields with descriptions
+- - Use proper validation constraints (ge, le, etc.)
+- - Keep schema inheritance clean and logical
+- 
+- #### Schema Validation Rules
+- - Use Field(...) for required fields
+- - Use Field(None) for optional fields
+- - Include proper validation ranges (ge, le)
+- - Document validation rules in docstrings
+- - Use appropriate field types (HttpUrl, datetime)
+- - Keep validation consistent across related schemas
+- - Include proper error messages for validations
+- 
+- ## Deepgram Integration Best Practices
+- - Use nova-2 model for best transcription quality
+- - Leverage built-in features:
+-   - Speaker diarization for speaker identification
+-   - Word-level timing for accurate segmentation
+-   - Natural paragraph breaks based on pauses
+-   - Confidence scores for quality tracking
+- - Segment breaks on:
+-   - Speaker changes
+-   - Pauses > 1 second
+-   - Natural paragraph boundaries
+- - Store raw response in JSONB for flexibility
+- - Track detailed metadata:
+-   - Word count
+-   - Duration
+-   - Speaker information
+-   - Confidence scores
+-   - Timing information
+- 
+- ## OpenAI Integration Best Practices
+- - Use text-embedding-3-small model for embeddings
+-   - 1536 dimensions for optimal vector search
+-   - Consistent across all segments
+- - Use GPT-4 for summaries with:
+-   - temperature=0.3 for consistency
+-   - max_tokens=100 for concise output
+-   - Clear system prompts
+-   - One-sentence summary format
+- - Optimize API usage:
+-   - Only generate summaries for segments > 50 words
+-   - Batch embeddings when possible
+-   - Cache results for repeated segments
+-   - Handle rate limits with exponential backoff
+- 
+- ## Segmentation Best Practices
+- - Use Deepgram's natural segmentation instead of arbitrary splits
+- - Break segments on:
+-   - Speaker changes (from diarization)
+-   - Long pauses (>1s)
+-   - Natural speech boundaries
+- - Minimum segment length: 50 words for summary generation
+- - Maximum segment length: None (use natural breaks)
+- - Store segment metadata:
+-   - Word count
+-   - Duration
+-   - Speaker ID
+-   - Confidence score
+-   - Summary status
+-   - Timing information
++ ## Current Task: Video Summary and Keywords Improvement
++ 
++ ### Overview
++ We need to improve our video summary and keyword extraction process by:
++ 1. Using segmentation data for more efficient summarization
++ 2. Moving keyword extraction to the backend with OpenAI
++ 3. Improving keyword quality by excluding common words
++ 
++ ### Stage 1: Backend Summary Generation
++ [ ] Implement segmented summary generation
++   [ ] Create new summary processor in pipeline
++   [ ] Design prompt for segment-based summary
++   [ ] Add summary aggregation logic
++   [ ] Update database schema if needed
++   [ ] Add API endpoint for summary
++   [ ] Add tests for summary generation
++ 
++ ### Stage 2: Keyword Extraction Service
++ [ ] Implement OpenAI-based keyword extraction
++   [ ] Create keyword extraction service
++   [ ] Define stop words and exclusion rules
++   [ ] Design prompt for keyword extraction
++   [ ] Add database fields for keywords
++   [ ] Create API endpoint for keywords
++   [ ] Add tests for keyword extraction
++ 
++ ### Stage 3: Frontend Integration
++ [ ] Update frontend to use new summary and keywords
++   [ ] Modify VideoInsights component
++   [ ] Update API integration
++   [ ] Improve keyword visualization
++   [ ] Add loading states
++   [ ] Update types and interfaces
++ 
++ ### Database Changes
++ [ ] Add new fields to Video model:
++ ```sql
++ ALTER TABLE videos
++ ADD COLUMN IF NOT EXISTS keywords JSONB,
++ ADD COLUMN IF NOT EXISTS segment_summary TEXT;
++ ```
++ 
++ ### API Endpoints
++ New endpoints to add:
++ ```typescript
++ // GET /api/videos/{id}/summary
++ interface VideoSummary {
++   summary: string;
++   keywords: string[];
++   segment_summaries: {
++     segment_id: string;
++     summary: string;
++   }[];
++ }
++ ```
++ 
++ ### OpenAI Prompts
++ Summary prompt structure:
++ ```typescript
++ interface SummaryPrompt {
++   segments: {
++     text: string;
++     speaker: string;
++     duration: number;
++   }[];
++   context: string;
++   format: {
++     max_length: number;
++     style: 'concise' | 'detailed';
++   };
++ }
++ ```
++ 
++ Keyword prompt structure:
++ ```typescript
++ interface KeywordPrompt {
++   segments: {
++     text: string;
++     importance: number;
++   }[];
++   exclude_words: string[];
++   max_keywords: number;
++   min_word_length: number;
++ }
++ ```
++ 
++ ### Progress Tracking
++ [X] Initial planning and documentation
++ [ ] Backend implementation
++   [ ] Summary generation
++   [ ] Keyword extraction
++ [ ] Database updates
++ [ ] API endpoint implementation
++ [ ] Frontend integration
++ [ ] Testing and validation
++ 
++ ### Technical Considerations
++ 1. Summary Generation:
++    - Use GPT-4 for better quality
++    - Process segments in batches
++    - Consider context between segments
++    - Handle speaker transitions
++    - Maintain chronological order
++ 
++ 2. Keyword Extraction:
++    - Define comprehensive stop word list
++    - Consider word frequency and relevance
++    - Handle technical terms and proper nouns
++    - Support multiple languages
++    - Consider domain-specific terminology
++ 
++ 3. Performance:
++    - Implement caching for summaries
++    - Batch process segments
++    - Optimize API calls
++    - Handle rate limiting
++    - Add proper error handling
++ 
++ ### Lessons Learned
++ - Keep track of OpenAI token usage
++ - Monitor summary quality
++ - Track keyword relevance
+  - Handle edge cases:
+-   - Empty segments
+-   - Single-word segments
+-   - Very long segments
++   - Very long videos
++   - Technical content
+    - Multiple speakers
+-   - Overlapping speech
+- 
+- ## Database Storage Best Practices
+- - Store embeddings as vectors for similarity search
+- - Use JSONB for flexible metadata storage
+- - Include all timing information
+- - Store both raw and processed text
+- - Track segment relationships
+- - Maintain speaker information
+- - Include quality metrics
+- - Enable efficient querying
+- - Support vector similarity search
+- - Handle updates efficiently
++   - Non-English content
++ 
++ # Project Structure
++ (existing structure remains unchanged)
++ 
++ # Tools
++ (existing tools section remains unchanged)
++ 
++ # Lessons
++ (existing lessons remain unchanged)
+  
+```
+
+---
+
+_****_
+
+
+
+I've updated the `.cursorrules` file with our new tasks and improvement plan. The plan is now well-documented with:
+
+1. Clear task breakdown into three stages:
+   - Backend summary generation
+   - Keyword extraction service
+   - Frontend integration
+
+2. Detailed technical specifications:
+   - Database schema changes
+   - API endpoint definitions
+   - OpenAI prompt structures
+
+3. Progress tracking and considerations:
+   - Technical considerations for each component
+   - Performance optimizations
+   - Error handling strategies
+
+Would you like to start working on any specific part of this plan? We could begin with either:
+
+1. Backend Summary Generation:
+   - Create the summary processor
+   - Design the OpenAI prompt
+   - Implement the aggregation logic
+
+2. Keyword Extraction:
+   - Set up the keyword service
+   - Define stop words
+   - Create the extraction prompt
+
+3. Database Changes:
+   - Add the new columns
+   - Update the models
+   - Create migrations
+
+Let me know which part you'd like to tackle first!
+
+---
+
+_**User**_
+
+why I don't have a permission
+
+---
+
+_**Assistant**_
+
+The error `Permission denied (publickey)` indicates that GitHub doesn't recognize your SSH key. This is a common authentication issue. Let's fix this by setting up your SSH key with GitHub:
+
+1. First, let's check if you have any existing SSH keys:
+
+---
+
+_****_
+
+```bash
+ls -la ~/.ssh
+```
+
+```
+(venv) yeondampark@Yeondams-MacBook-Pro video-analytic-agent % ls -la ~/.ssh
+total 48
+drwx------@  8 yeondampark  staff   256 Feb 14 12:18 .
+drwxr-x---+ 46 yeondampark  staff  1472 Feb 17 20:27 ..
+-rw-------@  1 yeondampark  staff   444 Feb 11 09:46 id_ed25519
+-rw-r--r--@  1 yeondampark  staff   120 Feb 11 09:46 id_ed25519.pub
+-rw-------@  1 yeondampark  staff  3389 Jan 20 20:36 id_rsa
+-rw-r--r--@  1 yeondampark  staff   745 Jan 20 20:36 id_rsa.pub
+-rw-------@  1 yeondampark  staff  1662 Jan 20 20:45 known_hosts
+-rw-------@  1 yeondampark  staff   922 Jan 20 20:37 known_hosts.old
+(venv) yeondampark@Yeondams-MacBook-Pro video-analytic-agent %
+```
+
+---
+
+_****_
+
+
+
+I see you have existing SSH keys. Let's add your public key to GitHub. First, let's copy your public key:
+
+---
+
+_****_
+
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+
+```
+(venv) yeondampark@Yeondams-MacBook-Pro video-analytic-agent % cat ~/.ssh/id_ed25519.pub
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHBgtNJKQFMl2AUMDHDpUGKuk8m7ILt28v+nqv2ISeb2 yeondampark@Yeondams-MacBoo
+k-Pro.local
+(venv) yeondampark@Yeondams-MacBook-Pro video-analytic-agent %
+```
+
+---
+
+_****_
+
+
+
+Now you need to:
+
+1. Go to GitHub.com and log in to your account
+2. Click your profile picture in the top right corner
+3. Go to Settings
+4. Click "SSH and GPG keys" in the left sidebar
+5. Click "New SSH key" or "Add SSH key"
+6. Give your key a descriptive title (e.g., "MacBook Pro")
+7. Copy the entire SSH key output from above (starts with `ssh-ed25519` and ends with your email)
+8. Paste it into the "Key" field
+9. Click "Add SSH key"
+
+After adding the key, let's verify the connection:
+
+---
+
+_****_
+
+
+
+---
+
+_****_
+
+
+
+---
+
+_**User**_
+
+I have committed already with storage folder, but due to file size limit, I want to exclude them, I already added to gitignore but since I already committed how can I exclude them?
+
+---
+
+_**Assistant**_
+
+
+
+---
+
 
 
 ---
