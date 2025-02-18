@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Videos - Video Analytics{% endblock %}
+
+{% block content %}
+<div id="app">
+    <!-- Add Video Form -->
+    <div class="bg-white shadow sm:rounded-lg mb-6">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Add New Video
+            </h3>
+            <div class="mt-2 max-w-xl text-sm text-gray-500">
+                <p>Enter a Loom video URL to start processing.</p>
+            </div>
+            <form @submit.prevent="addVideo" class="mt-5">
+                <div class="flex items-center">
+                    <input type="text" v-model="newVideo.loom_video_id" required
+                        class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        placeholder="Loom video ID">
+                    <button type="submit"
+                        class="ml-3 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Add Video
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Video List -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <ul class="divide-y divide-gray-200">
+            <li v-for="video in videos" :key="video.id">
+                <a :href="'/videos/' + video.id" class="block hover:bg-gray-50">
+                    <div class="px-4 py-4 sm:px-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <img v-if="video.thumbnail_url" :src="video.thumbnail_url" class="h-12 w-12 rounded object-cover">
+                                    <div v-else class="h-12 w-12 rounded bg-gray-200 flex items-center justify-center">
+                                        <span class="text-gray-500">No thumbnail</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-indigo-600">
+                                        [[ video.title || 'Untitled Video' ]]
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        ID: [[ video.loom_video_id ]]
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span :class="{
+                                    'px-2 inline-flex text-xs leading-5 font-semibold rounded-full': true,
+                                    'bg-green-100 text-green-800': video.status === 'completed',
+                                    'bg-yellow-100 text-yellow-800': ['pending', 'downloading', 'extracting_audio', 'transcribing', 'segmenting'].includes(video.status),
+                                    'bg-red-100 text-red-800': video.status === 'failed'
+                                }">
+                                    [[ video.status ]]
+                                </span>
+                                <div class="ml-2 flex-shrink-0 flex">
+                                    <span class="text-sm text-gray-500">
+                                        [[ formatDate(video.created_at) ]]
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const { createApp } = Vue
+
+createApp({
+    delimiters: ['[[', ']]'],
+    data() {
+        return {
+            videos: [],
+            newVideo: {
+                loom_video_id: '',
+                title: '',
+                description: '',
+                status: 'pending'
+            }
+        }
+    },
+    methods: {
+        async fetchVideos() {
+            try {
+                const response = await axios.get('/api/videos')
+                this.videos = response.data
+            } catch (error) {
+                console.error('Error fetching videos:', error)
+            }
+        },
+        async addVideo() {
+            try {
+                await axios.post('/api/videos', this.newVideo)
+                this.newVideo.loom_video_id = ''
+                await this.fetchVideos()
+            } catch (error) {
+                console.error('Error adding video:', error)
+            }
+        },
+        formatDate(date) {
+            return new Date(date).toLocaleDateString()
+        }
+    },
+    mounted() {
+        this.fetchVideos()
+        // Poll for updates every 5 seconds
+        setInterval(this.fetchVideos, 5000)
+    }
+}).mount('#app')
+</script>
+{% endblock %} 

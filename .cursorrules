@@ -1,0 +1,612 @@
+# Instructions
+
+During your interaction with the user, if you find anything reusable in this project (e.g. version of a library, model name), especially about a fix to a mistake you made or a correction you received, you should take note in the `Lessons` section in the `.cursorrules` file so you will not make the same mistake again.
+
+You should also use the `.cursorrules` file as a Scratchpad to organize your thoughts. Especially when you receive a new task, you should first review the content of the Scratchpad, clear old different task if necessary, first explain the task, and plan the steps you need to take to complete the task. You can use todo markers to indicate the progress, e.g.
+[X] Task 1
+[ ] Task 2
+
+Also update the progress of the task in the Scratchpad when you finish a subtask.
+Especially when you finished a milestone, it will help to improve your depth of task accomplishment to use the Scratchpad to reflect and plan.
+The goal is to help you maintain a big picture as well as the progress of the task. Always refer to the Scratchpad when you plan the next step.
+
+# Project Structure
+
+```
+video-analytic-agent/
+├── config/             # Global configuration files
+├── src/               # Source code
+│   ├── api/          # FastAPI application
+│   │   ├── alembic/  # Database migrations
+│   │   ├── config/   # API-specific configuration
+│   │   ├── core/     # Core functionality
+│   │   ├── dependencies/ # FastAPI dependencies
+│   │   ├── middleware/   # Custom middleware
+│   │   ├── routers/  # API route handlers
+│   │   ├── schemas/  # Pydantic schemas
+│   │   ├── services/ # Business logic services
+│   │   └── templates/ # HTML templates
+│   ├── db/          # Database layer
+│   │   ├── models/  # SQLAlchemy models
+│   │   ├── migrations/ # Database migrations
+│   │   └── utils/   # Database utilities
+│   ├── pipeline/    # Video processing pipeline
+│   │   ├── stages/  # Pipeline stages
+│   │   │   ├── stage1_download/  # Video download and audio extraction
+│   │   │   │   ├── downloader.py  # Video downloader
+│   │   │   │   └── audio_extractor.py  # Audio extractor
+│   │   │   ├── stage2_transcription/  # Speech-to-text transcription
+│   │   │   └── stage3_segmentation/  # Video segmentation
+│   │   ├── models.py  # Pipeline models
+│   │   └── types.py  # Pipeline types and enums
+│   └── web/         # React web interface
+│       ├── src/     # React source code
+│       │   ├── components/ # React components
+│       │   ├── lib/   # Utility functions
+│       │   ├── pages/ # Page components
+│       │   ├── styles/ # CSS styles
+│       │   └── types/ # TypeScript types
+│       └── public/   # Static assets
+├── tests/            # Test files
+│   ├── unit/       # Unit tests
+│   ├── integration/ # Integration tests
+│   └── e2e/        # End-to-end tests
+├── storage/          # Local storage for videos and audio
+│   ├── videos/     # Downloaded video files
+│   └── audio/      # Extracted audio files
+└── docs/            # Documentation
+```
+
+# Tools
+
+Note all the tools are in python. So in the case you need to do batch processing, you can always consult the python files and write your own script.
+
+List of tools:
+
+- Deepgram
+- OpenAI
+- pgvector
+- alembic
+- tailwindcss
+- ffmpeg
+- python
+- fastapi
+- sqlalchemy
+- alembic
+- pgvector
+- deepgram
+- supabase
+- react
+- tailwindcss
+- typescript
+- react-router-dom
+- react-hook-form
+- react-query
+
+# Lessons
+
+## User Specified Lessons
+
+- You have a python venv in ./venv. Use it.
+- Include info useful for debugging in the program output.
+- Read the file before you try to edit it.
+- Due to Cursor's limit, when you use `git` and `gh` and need to submit a multiline commit message, first write the message in a file, and then use `git commit -F <filename>` or similar command to commit. And then remove the file. Include "[Cursor] " in the commit message and PR title.
+
+## Cursor learned
+
+- For search results, ensure proper handling of different character encodings (UTF-8) for international queries
+- Add debug information to stderr while keeping the main output clean in stdout for better pipeline integration
+- When using seaborn styles in matplotlib, use 'seaborn-v0_8' instead of 'seaborn' as the style name due to recent seaborn version changes
+- Use 'gpt-4o' as the model name for OpenAI's GPT-4 with vision capabilities
+- Use Deepgram's 'nova-2' model for high-quality transcription with diarization
+- Configure audio extraction for optimal speech recognition: WAV format, mono, 16kHz sample rate
+- Use GPT-4 with temperature=0.3 for more consistent and focused summaries
+- Store structured data (key points, action items) as JSON in the database for flexibility
+- Follow project structure conventions:
+  - Keep all database models in src/db/models/
+  - Keep database migrations in src/db/migrations/
+  - Keep database utilities in src/db/utils/
+  - Keep API-specific configuration in src/api/config/
+  - Keep core functionality in src/api/core/
+  - Keep route handlers in src/api/routers/
+  - Keep business logic in src/api/services/
+  - Keep middleware in src/api/middleware/
+  - Keep dependencies in src/api/dependencies/
+  - Keep schemas in src/api/schemas/
+- Use text-embedding-3-small model for embeddings with 1536 dimensions
+- Use pgvector for efficient vector similarity search in PostgreSQL
+- Organize settings with proper nesting and inheritance:
+  - Use separate settings classes for different components (API, DB, Storage, Services)
+  - Nest component settings in main Settings class (e.g., settings.api.cors_origin_list)
+  - Use pydantic's model_config for environment variable configuration
+  - Keep settings modular and well-organized by domain
+  - Use proper type hints and validation for all settings
+  - Initialize all nested settings in the main Settings class constructor
+
+## SQLAlchemy Best Practices
+
+### Model Organization
+- Define SQLAlchemy Base class in a central location (e.g., src/db/models/base.py)
+- Import Base from this central location in all model files
+- Avoid circular imports by organizing models hierarchically
+- Use relative imports within the models package
+- Keep model relationships bi-directional with proper back_populates
+- Define __tablename__ explicitly for all models
+- Use proper cascade options for relationships
+- Include proper type hints for all model attributes
+- Add docstrings to describe model purpose and relationships
+- Implement to_dict() method for model serialization instead of relying on Pydantic's model_dump()
+- Handle auto-generated fields (id, timestamps) properly in serialization
+- Keep serialization logic consistent across all models
+
+### Model Import Conventions
+- ALWAYS use src.db.models for database model imports
+- NEVER use src.api.models for database models
+- Keep all database models in src/db/models/ directory
+- Keep all API schemas in src/api/schemas/ directory
+- Use clear naming to distinguish between database models and API schemas:
+  - Database models: src/db/models/video.py -> class Video
+  - API schemas: src/api/schemas/video.py -> class VideoSchema, VideoCreate, VideoUpdate, etc.
+- When both model and schema are needed:
+  ```python
+  from src.db.models.video import Video as VideoModel
+  from src.api.schemas.video import VideoSchema
+  ```
+- Document model relationships in both the model and schema files
+- Keep model validation logic in the database models
+- Keep API-specific validation in the schemas
+- Use proper type annotations to distinguish between models and schemas
+
+### Database Setup
+- Initialize SQLAlchemy engine and session in a single location
+- Use connection pooling with proper configuration
+- Configure proper pool size and overflow settings
+- Handle connection timeouts and retries
+- Use proper SSL settings for production
+- Enable echo only in development
+- Use proper connection string escaping
+- Configure proper connection pool recycling
+
+### Supabase Integration
+- Always use db.client instead of db.supabase for consistency
+- Keep all database access through the DatabaseManager singleton
+- Import database client from src.api.database, not src.db.database
+- Don't use await with Supabase client methods (they return APIResponse directly)
+- Use execute() to get the actual response data
+- Handle APIResponse properly by accessing data attribute
+- Remove auto-generated fields (id, timestamps) before insert/update operations
+- Use proper error handling for Supabase operations
+- Keep Supabase operations synchronous unless explicitly needed
+- Use proper table names and column references
+- Handle Supabase-specific data types correctly
+- Implement proper retry logic for Supabase operations
+- Use proper authentication and authorization
+- Handle RLS policies appropriately
+- Test Supabase operations in isolation
+
+### Database Client Access
+- Use consistent database client access across the application
+- Import database client from src.api.database
+- Use db.client for Supabase operations
+- Keep database client singleton pattern
+- Initialize database client early in application startup
+- Handle database client errors consistently
+- Use proper connection pooling with client
+- Implement proper retry logic for client operations
+- Monitor client connection health
+- Handle client reconnection gracefully
+- Log client errors with proper context
+- Test client operations in isolation
+
+### Connection URL Handling
+- Keep connection pool parameters separate from the DSN string
+- Connection pool parameters (pool_size, pool_timeout, max_overflow) should be passed as create_engine arguments, not in the URL
+- Only include standard PostgreSQL connection parameters in the DSN (host, port, dbname, user, password)
+- Use connect_args for driver-specific options
+- Handle SSL and timeout settings through connect_args
+- Validate connection parameters before creating the engine
+- Use URL.create() for proper URL escaping and construction
+- Test connection string formation separately from engine creation
+
+### Dependency Injection
+- Use dependency injection for services and components
+- Pass dependencies through constructors rather than creating instances internally
+- Allow mocking of dependencies for testing
+- Use Optional parameters for dependencies with default implementations
+- Document expected dependencies in docstrings
+- Use proper typing for injected dependencies
+- Initialize dependencies at the application level
+- Avoid circular dependencies through proper abstraction
+
+### Error Handling
+- Add proper error handling for database operations
+- Use custom exception classes
+- Include proper logging
+- Handle connection errors gracefully
+- Implement proper retry logic
+- Add proper cleanup in error cases
+- Use proper transaction management
+- Include proper error messages
+- Log all database errors with context
+- Handle connection pool exhaustion
+- Implement circuit breaker for external services
+- Add proper timeout handling
+
+### Testing
+- Use proper test fixtures for database testing
+- Mock external services in tests
+- Use temporary databases for testing
+- Clean up test data after tests
+- Test error conditions and edge cases
+- Use proper test isolation
+- Mock database connections when appropriate
+- Test retry logic and error handling
+- Verify connection pool behavior
+- Test SSL and security settings
+- Include integration tests for database operations
+- Test migration scripts
+
+### Migration Management
+- Keep migrations in a dedicated directory
+- Use alembic for all schema changes
+- Never modify existing migrations
+- Include proper downgrade paths
+- Test migrations before deployment
+- Keep migration messages descriptive
+- Use proper naming conventions for migrations
+- Include proper dependencies between migrations
+- Test both upgrade and downgrade paths
+- Document breaking changes in migrations
+- Handle data migrations separately from schema migrations
+- Include proper error handling in migrations
+- When dealing with multiple heads:
+  1. Use `alembic history` to identify the branches
+  2. Create a merge migration with `alembic merge -m "message" heads`
+  3. Run `alembic upgrade head` to apply all migrations
+- When updating enum types:
+  1. Create a temporary table to store existing data
+  2. Drop dependent tables with CASCADE
+  3. Drop the old enum type with CASCADE
+  4. Create the new enum type with all required values
+  5. Recreate the table with the new enum type
+  6. Transform the data if needed (using CASE statements)
+  7. Insert the transformed data back
+  8. Clean up temporary tables
+
+## Settings Best Practices
+
+### Settings Organization
+- Keep settings modular and organized by domain (API, DB, Storage, Services)
+- Use nested settings classes for better organization and type safety
+- Inherit from a common base settings class (BaseAppSettings)
+- Use Pydantic's Field for proper type hints and validation
+- Keep environment variables in a single source of truth (Settings class)
+- Use proper nesting for component-specific settings (api, database, services)
+- Follow consistent naming conventions across all settings
+- Use descriptive field names and documentation
+- Implement proper validation and type conversion
+- Keep settings immutable when possible
+
+### Environment Variables
+- Use pydantic-settings with BaseSettings for automatic env loading
+- Let pydantic handle type validation and conversion
+- Use .env file in development, real env vars in production
+- Specify env_file in model_config for BaseSettings
+- Use Field() with description and default values for clarity
+- Never hardcode sensitive values like passwords
+- Use Optional[str] for optional env vars with None default
+- Validate env vars using model_validator
+- Log masked sensitive values for debugging
+- Use dotenv.load_dotenv() only in development
+- Keep all env var definitions in one place (settings.py)
+- Use proper type hints for all env vars
+- Document required vs optional env vars
+- Use constants for default values
+- Validate env vars early in application startup
+- Disable .env file loading in tests to avoid environment interference
+- Set proper default values for required fields
+
+### File System Paths
+- Use Path objects for file system paths
+- Validate paths exist or can be created
+- Handle path creation errors gracefully
+- Use absolute paths for storage directories
+- Keep paths organized by category (videos, audio, etc.)
+- Validate path permissions before operations
+- Handle path encoding issues (UTF-8)
+- Use Path.resolve() for canonical paths
+- Keep storage paths configurable
+- Add proper error messages for path issues
+
+### Testing
+- Add comprehensive test coverage for all settings
+- Test with and without environment variables
+- Test path validation and creation
+- Test error cases and validation
+- Use pytest fixtures for test settings
+- Clear environment between tests
+- Mock file system operations in tests
+- Test configuration inheritance
+- Test all default values
+- Test type conversions
+- Test validation rules
+- Test error messages
+
+### Code Organization
+- Keep settings modular and well-organized
+- Split settings by domain (API, DB, Storage, Services)
+- Use inheritance for common settings
+- Keep validation logic in the settings classes
+- Use properties for computed values
+- Add proper docstrings and type hints
+- Follow consistent naming conventions
+- Use enums for constrained choices
+- Keep configuration DRY
+- Add proper error handling
+- Use proper logging
+- Keep settings immutable when possible
+
+### Database Settings
+- Use connection pooling
+- Configure pool size and timeout
+- Handle connection errors gracefully
+- Use proper connection string escaping
+- Keep credentials secure
+- Add connection health checks
+- Configure SSL properly
+- Handle reconnection logic
+- Add proper error messages
+- Use async where appropriate
+- Add proper logging
+- Handle connection pooling properly
+
+### API Settings
+- Configure CORS properly
+- Add rate limiting
+- Configure timeouts
+- Add proper security headers
+- Configure logging
+- Add health checks
+- Configure documentation
+- Add proper versioning
+- Configure middleware
+- Handle errors properly
+- Add proper validation
+- Keep endpoints organized
+
+### Service Integration
+- Keep API keys secure
+- Configure service timeouts
+- Add proper error handling
+- Configure retries
+- Add circuit breakers
+- Monitor service health
+- Add proper logging
+- Handle service outages
+- Keep services modular
+- Add proper validation
+- Configure rate limits
+- Handle authentication
+
+## Enum Standardization
+
+### VideoStatus Enum
+- Keep a single source of truth for enums in `src/pipeline/types.py`
+- Import the enum from this location in all other files that need it
+- Never redefine the enum in other files (e.g. models, schemas)
+- Current standard VideoStatus values:
+  ```python
+  PENDING = "PENDING"
+  DOWNLOADING = "DOWNLOADING"
+  DOWNLOADED = "DOWNLOADED"
+  EXTRACTING_AUDIO = "EXTRACTING_AUDIO"
+  AUDIO_EXTRACTED = "AUDIO_EXTRACTED"
+  TRANSCRIBING = "TRANSCRIBING"
+  TRANSCRIBED = "TRANSCRIBED"
+  SEGMENTING = "SEGMENTING"
+  PROCESSING = "PROCESSING"
+  COMPLETED = "COMPLETED"
+  FAILED = "FAILED"
+  ```
+
+### VideoSource Enum
+- Keep a single source of truth for enums in `src/pipeline/types.py`
+- Import the enum from this location in all other files that need it
+- Never redefine the enum in other files (e.g. models, schemas)
+- Current standard VideoSource values:
+  ```python
+  LOOM = "LOOM"
+  YOUTUBE = "YOUTUBE"
+  LOCAL = "LOCAL"
+  ```
+
+### Database Enum Handling
+- When adding or modifying enum values:
+  1. First update the enum in `src/pipeline/types.py`
+  2. Create a new alembic migration to update the database enum type
+  3. Use a temporary table to preserve data during enum updates
+  4. Provide both upgrade and downgrade paths
+  5. Test the migration in both directions
+  6. Handle column type conversions properly (e.g. array to integer)
+  7. Convert enum values to text before dropping the old enum type
+  8. Create the new enum type before using it in CASE statements
+  9. Use proper COALESCE for nullable columns
+  10. Handle array types properly by converting to appropriate scalar types
+
+### Frontend Enum Handling
+- Keep frontend enums in sync with backend in `src/web/src/types/video.ts`
+- Use TypeScript string literal unions for type safety
+- Update processing steps array when enum values change
+- Ensure UI components handle all possible enum values
+
+### Best Practices
+1. Always use string enums for better serialization/deserialization
+2. Keep enum values in UPPERCASE for consistency
+3. Use descriptive names that match the business logic
+4. Document the meaning and usage of each enum value
+5. Include proper type hints when using enums
+6. Handle all enum cases in switch statements
+7. Provide proper validation in API schemas
+8. Test enum value changes thoroughly
+9. Keep enums synchronized across:
+   - Database (PostgreSQL enum type)
+   - Backend (Python enum)
+   - Frontend (TypeScript type)
+   - API schemas (Pydantic models)
+   - Migration scripts (Alembic)
+
+### Lessons Learned
+- Avoid redefining enums in multiple places
+- Use proper database migrations for enum changes
+- Keep frontend and backend enums synchronized
+- Document enum values and their meanings
+- Test enum changes thoroughly
+- Consider backward compatibility
+- Handle default values appropriately
+- Use type checking to catch enum mismatches
+- Follow consistent naming conventions
+- Maintain a single source of truth
+- Handle column type conversions properly in migrations
+- Convert enum values to text before dropping old enum types
+- Create new enum types before using them in CASE statements
+- Use proper COALESCE for nullable columns
+- Handle array types properly by converting to appropriate scalar types
+
+# Scratchpad
+
+## Current Task: Video Summary and Keywords Improvement
+
+### Overview
+We need to improve our video summary and keyword extraction process by:
+1. Using segmentation data for more efficient summarization
+2. Moving keyword extraction to the backend with OpenAI
+3. Improving keyword quality by excluding common words
+
+### Stage 1: Backend Summary Generation
+[ ] Implement segmented summary generation
+  [ ] Create new summary processor in pipeline
+  [ ] Design prompt for segment-based summary
+  [ ] Add summary aggregation logic
+  [ ] Update database schema if needed
+  [ ] Add API endpoint for summary
+  [ ] Add tests for summary generation
+
+### Stage 2: Keyword Extraction Service
+[ ] Implement OpenAI-based keyword extraction
+  [ ] Create keyword extraction service
+  [ ] Define stop words and exclusion rules
+  [ ] Design prompt for keyword extraction
+  [ ] Add database fields for keywords
+  [ ] Create API endpoint for keywords
+  [ ] Add tests for keyword extraction
+
+### Stage 3: Frontend Integration
+[ ] Update frontend to use new summary and keywords
+  [ ] Modify VideoInsights component
+  [ ] Update API integration
+  [ ] Improve keyword visualization
+  [ ] Add loading states
+  [ ] Update types and interfaces
+
+### Database Changes
+[ ] Add new fields to Video model:
+```sql
+ALTER TABLE videos
+ADD COLUMN IF NOT EXISTS keywords JSONB,
+ADD COLUMN IF NOT EXISTS segment_summary TEXT;
+```
+
+### API Endpoints
+New endpoints to add:
+```typescript
+// GET /api/videos/{id}/summary
+interface VideoSummary {
+  summary: string;
+  keywords: string[];
+  segment_summaries: {
+    segment_id: string;
+    summary: string;
+  }[];
+}
+```
+
+### OpenAI Prompts
+Summary prompt structure:
+```typescript
+interface SummaryPrompt {
+  segments: {
+    text: string;
+    speaker: string;
+    duration: number;
+  }[];
+  context: string;
+  format: {
+    max_length: number;
+    style: 'concise' | 'detailed';
+  };
+}
+```
+
+Keyword prompt structure:
+```typescript
+interface KeywordPrompt {
+  segments: {
+    text: string;
+    importance: number;
+  }[];
+  exclude_words: string[];
+  max_keywords: number;
+  min_word_length: number;
+}
+```
+
+### Progress Tracking
+[X] Initial planning and documentation
+[ ] Backend implementation
+  [ ] Summary generation
+  [ ] Keyword extraction
+[ ] Database updates
+[ ] API endpoint implementation
+[ ] Frontend integration
+[ ] Testing and validation
+
+### Technical Considerations
+1. Summary Generation:
+   - Use GPT-4 for better quality
+   - Process segments in batches
+   - Consider context between segments
+   - Handle speaker transitions
+   - Maintain chronological order
+
+2. Keyword Extraction:
+   - Define comprehensive stop word list
+   - Consider word frequency and relevance
+   - Handle technical terms and proper nouns
+   - Support multiple languages
+   - Consider domain-specific terminology
+
+3. Performance:
+   - Implement caching for summaries
+   - Batch process segments
+   - Optimize API calls
+   - Handle rate limiting
+   - Add proper error handling
+
+### Lessons Learned
+- Keep track of OpenAI token usage
+- Monitor summary quality
+- Track keyword relevance
+- Handle edge cases:
+  - Very long videos
+  - Technical content
+  - Multiple speakers
+  - Non-English content
+
+# Project Structure
+(existing structure remains unchanged)
+
+# Tools
+(existing tools section remains unchanged)
+
+# Lessons
+(existing lessons remain unchanged)

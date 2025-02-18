@@ -1,0 +1,13 @@
+import os
+import sys
+from pathlib import Path
+
+# Add src directory to Python path
+src_path = str(Path(__file__).parent / "src")
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
+
+# Set test environment variables
+os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
+os.environ.setdefault("SUPABASE_KEY", "test-key")
+os.environ.setdefault("ENVIRONMENT", "test") 

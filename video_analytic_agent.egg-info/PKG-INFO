@@ -1,0 +1,16 @@
+Metadata-Version: 2.2
+Name: video-analytic-agent
+Version: 0.1.0
+License-File: LICENSE
+Requires-Dist: fastapi
+Requires-Dist: sqlalchemy
+Requires-Dist: alembic
+Requires-Dist: pydantic
+Requires-Dist: pydantic-settings
+Requires-Dist: python-dotenv
+Requires-Dist: deepgram-sdk
+Requires-Dist: supabase
+Requires-Dist: asyncio
+Requires-Dist: pytest
+Requires-Dist: pytest-asyncio
+Dynamic: requires-dist

@@ -1,0 +1,1 @@
+export { ThinkingComponent } from './ThinkingComponent' 

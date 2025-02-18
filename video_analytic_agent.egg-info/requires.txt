@@ -1,0 +1,11 @@
+fastapi
+sqlalchemy
+alembic
+pydantic
+pydantic-settings
+python-dotenv
+deepgram-sdk
+supabase
+asyncio
+pytest
+pytest-asyncio
