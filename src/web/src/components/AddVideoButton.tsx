@@ -1,19 +1,16 @@
-import React, { useState } from 'react';
-import { AddVideoModal } from './AddVideoModal';
+import React from 'react';
 
-export const AddVideoButton: React.FC = () => {
-  const [showModal, setShowModal] = useState(false);
+interface AddVideoButtonProps {
+  onClick: () => void;
+}
 
+export const AddVideoButton: React.FC<AddVideoButtonProps> = ({ onClick }) => {
   return (
-    <>
-      <button
-        onClick={() => setShowModal(true)}
-        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-      >
-        Add Video
-      </button>
-
-      {showModal && <AddVideoModal onClose={() => setShowModal(false)} />}
-    </>
+    <button
+      onClick={onClick}
+      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+    >
+      Add Video
+    </button>
   );
 }; 

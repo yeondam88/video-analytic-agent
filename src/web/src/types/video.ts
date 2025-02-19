@@ -15,7 +15,8 @@ export enum VideoStatus {
 export enum VideoSource {
   LOOM = "LOOM",
   YOUTUBE = "YOUTUBE",
-  LOCAL = "LOCAL"
+  LOCAL = "LOCAL",
+  OTHER = "OTHER"
 }
 
 interface ProcessingStep {
@@ -30,20 +31,21 @@ export interface Video {
   id: string;
   url: string;
   title: string | null;
-  description?: string;
-  source: VideoSource;
-  source_id: string;
+  description: string | null;
   status: VideoStatus;
   progress: number;
-  error?: string;
-  steps_completed: string[];
-  processing_details: ProcessingStep[];
+  steps_completed?: string[];
   created_at: string;
-  updated_at?: string;
+  error?: string;
   thumbnail_url?: string;
+  source?: VideoSource;
   metadata?: {
     summary?: string;
     key_points?: string[];
+    tags?: string[];
+    category?: string;
+    duration?: number;
+    thumbnail_url?: string;
   };
 }
 
@@ -63,23 +65,15 @@ export interface VideoResponse extends BaseVideo {
   id: number; // API returns number, but we convert to string for frontend use
 }
 
-export interface Segment {
+export interface VideoSegment {
   id: string;
   video_id: string;
+  text: string;
   start_time: number;
   end_time: number;
-  text: string;
-  display_text?: string;
-  speaker_id: string;
-  confidence: number;
-  words: Array<{
-    word: string;
-    start: number;
-    end: number;
-    confidence: number;
-  }>;
-  created_at?: string;
-  updated_at?: string;
+  speaker_id?: string;
+  created_at: string;
+  embedding?: number[];
 }
 
 export type ProcessingStepType = {

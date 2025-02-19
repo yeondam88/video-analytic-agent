@@ -1,10 +1,11 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 from urllib.parse import urlparse, quote_plus
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,17 @@ class ServiceSettings(BaseSettings):
     DEEPGRAM_MODEL: str = "nova-2"  # Using nova-2 model which has good support for Korean
     DEEPGRAM_LANGUAGE: str = "ko"   # Set Korean as default language
     OPENAI_API_KEY: Optional[str] = None
+
+
+class MeilisearchSettings(BaseSettings):
+    """Meilisearch configuration settings."""
+    host: str = "http://localhost:7700"
+    api_key: str = os.getenv("MEILISEARCH_API_KEY", "")
+    video_index: str = "videos"
+    segment_index: str = "segments"
+    embeddings_index: str = "embeddings"
+    max_total_hits: int = 100
+    search_limit: int = 20
 
 
 class Settings(BaseSettings):
@@ -40,6 +52,9 @@ class Settings(BaseSettings):
     # API settings
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
+
+    # Meilisearch configuration
+    meilisearch: MeilisearchSettings = MeilisearchSettings()
 
     @model_validator(mode='after')
     def set_db_credentials_from_url(self) -> 'Settings':
@@ -79,3 +94,5 @@ class Settings(BaseSettings):
         logger.info(f"Constructed database URL: {url.replace(password, '***')}")
         
         return url
+
+settings = Settings()

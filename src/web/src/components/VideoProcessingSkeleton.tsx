@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { processingSteps, ProcessingStepType } from '../types/video';
+import { processingSteps } from '../types/video';
 
 export const VideoProcessingSkeleton: React.FC = () => {
   return (
@@ -81,7 +81,7 @@ export const VideoProcessingSkeleton: React.FC = () => {
         
         {/* Processing steps skeleton */}
         <div className="mt-4 space-y-3">
-          {processingSteps.map((step: ProcessingStepType, index: number) => (
+          {processingSteps.map((step, index) => (
             <motion.div
               key={step.id}
               initial={{ opacity: 0, x: -20 }}

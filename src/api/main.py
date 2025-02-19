@@ -43,7 +43,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API router
+# Include API router which already includes all sub-routers
 app.include_router(api_router, prefix="/api")
 
 @app.get("/health")
@@ -55,4 +55,8 @@ async def health_check():
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         logger.error(f"Health check failed: {e}")
-        return {"status": "unhealthy", "error": str(e)} 
+        return {"status": "unhealthy", "error": str(e)}
+
+@app.get("/")
+async def root():
+    return {"message": "Video Analytics API"} 

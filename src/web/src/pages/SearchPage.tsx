@@ -6,22 +6,38 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { ReloadIcon } from '@radix-ui/react-icons'
 import { useDebounce } from '@/lib/hooks'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedSource, setSelectedSource] = useState<string>('')
   const debouncedQuery = useDebounce(searchQuery, 500)
 
   const {
-    data: videos,
+    data: searchResults,
     isLoading,
     isError,
     error,
     refetch
   } = useQuery({
-    queryKey: ['search', debouncedQuery],
+    queryKey: ['search', debouncedQuery, selectedSource],
     queryFn: async () => {
-      if (!debouncedQuery) return []
-      const response = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`)
+      if (!debouncedQuery) return { results: [], count: 0, query: '' }
+      
+      const response = await fetch('/api/search/basic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          query: debouncedQuery,
+          limit: 20,
+          filters: {
+            ...(selectedSource && { source: selectedSource })
+          }
+        })
+      })
+      
       if (!response.ok) {
         throw new Error('Failed to search videos')
       }
@@ -52,15 +68,34 @@ export function SearchPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Search</h1>
       </div>
-      <Input
-        type="search"
-        placeholder="Search videos..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="max-w-sm"
-      />
-      {debouncedQuery && (
-        <VideoGrid videos={videos || []} isLoading={isLoading} />
+      
+      <div className="flex gap-4">
+        <Input
+          type="search"
+          placeholder="Search videos..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="max-w-sm"
+        />
+        <Select value={selectedSource} onValueChange={setSelectedSource}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Sources" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Sources</SelectItem>
+            <SelectItem value="YOUTUBE">YouTube</SelectItem>
+            <SelectItem value="LOOM">Loom</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {debouncedQuery && searchResults && (
+        <>
+          <div className="text-sm text-muted-foreground">
+            Found {searchResults.count} results for "{searchResults.query}"
+          </div>
+          <VideoGrid videos={searchResults.results || []} isLoading={isLoading} />
+        </>
       )}
     </div>
   )

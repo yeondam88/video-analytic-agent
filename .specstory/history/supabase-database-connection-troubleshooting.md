@@ -4210,6 +4210,321 @@ class Transcriber:
 
 ---
 
+_**User**_
+
+Find the problem and research in their doc to solve this error
+
+---
+
+_**Assistant**_
+
+```markdown
+# Analysis and Fix for the "SyncRequestBuilder object has no attribute 'rpc'" Error
+
+### Analysis
+
+The error log shows:
+```
+'SyncRequestBuilder' object has no attribute 'rpc'
+```
+This occurs in our search service when attempting to call `.rpc` on an instance returned by `client.from_()`. In earlier versions of the Supabase Python client the code might have been written like this:
+```python
+result = self.db.client.from_("documents").rpc("hybrid_search", {...})
+```
+However, according to the [latest Deepgram/Supabase documentation](https://supabase.com/docs) (and corresponding Supabase Python client docs), the proper way to call a Remote Procedure Call (RPC) is to invoke the `rpc` method **directly** on the client. The object returned by the `from_()` method is a `SyncRequestBuilder`, which does not support the `rpc` method.
+
+### The Fix
+
+**Change RPC calls to call `rpc` on the client object instead of that returned by `from_()`:**
+
+For example, update your search service code as follows:
+
+```python:src/api/services/search_service.py
+import logging
+
+class SearchService:
+    def __init__(self, supabase_client):
+        self.client = supabase_client  # This is an instance of the Supabase client.
+        self.logger = logging.getLogger(__name__)
+
+    def semantic_segment_search(self, query: str, options: dict) -> dict:
+        try:
+            # Instead of: self.client.from_("segments").rpc("semantic_search", {"query": query, "options": options})
+            result = self.client.rpc("semantic_search", {"query": query, "options": options})
+            return result.data
+        except Exception as e:
+            self.logger.error(f"Failed to perform semantic segment search: {str(e)}")
+            raise
+
+    def hybrid_search(self, query: str, options: dict) -> dict:
+        try:
+            # Instead of: self.client.from_("documents").rpc("hybrid_search", {"query": query, "options": options})
+            result = self.client.rpc("hybrid_search", {"query": query, "options": options})
+            return result.data
+        except Exception as e:
+            self.logger.error(f"Failed to perform hybrid search: {str(e)}")
+            raise
+```
+
+### Explanation
+
+1. **Using the Correct RPC Method:**  
+   The latest Supabase client requires that you make RPC calls directly via `client.rpc("function_name", params)` rather than chaining `.from_()` before `.rpc()`. This fix adheres to the newer API.
+
+2. **Updating Search Service:**  
+   In the `SearchService` class, both `semantic_segment_search` and `hybrid_search` methods have been updated accordingly.
+
+3. **Documentation Reference:**  
+   Please refer to the [Supabase Python Client Documentation](https://supabase.com/docs/reference/python) for details on using RPC calls. The documentation confirms that the client’s `rpc` method should be used directly.
+
+Once these changes are applied, the error:
+```
+'SyncRequestBuilder' object has no attribute 'rpc'
+```
+will be resolved and the search endpoints will work as expected.
+
+By updating the code as shown, you ensure compatibility with the latest Supabase client APIs and eliminate the attribute error.
+```
+
+---
+
+_**User**_
+
+Let's fix this error, 
+
+---
+
+_**Assistant**_
+
+<think>
+Okay, let's tackle this error. The logs show a PostgreSQL error: "Returned type character varying does not match expected type text in column 3." This happens when a function's return type doesn't match what the database expects. 
+
+First, I need to check the RPC functions in Supabase, especially "semantic_search" and "hybrid_search". The error mentions column 3, so I should look at the third column in the return type of these functions. 
+
+PostgreSQL's VARCHAR and TEXT are similar, but they're distinct types. If the function declares a column as TEXT but returns VARCHAR, or vice versa, this error occurs. Maybe the function's return table definition has VARCHAR for the third column, but the expected type is TEXT.
+
+I should modify the function to cast the third column to TEXT. For example, if the third column is 'content' of type VARCHAR, changing it to ::TEXT would fix the type mismatch. Also, ensuring that all other columns in the return type match the expected data types.
+
+Additionally, when creating the function in SQL, using RETURNS TABLE with explicit column types as TEXT for any columns that might be VARCHAR. This way, the function's output aligns with what the client expects, resolving the type conflict.
+</think>
+
+```markdown
+# Fix for PostgreSQL Return Type Mismatch Error (42804)
+
+### Root Cause Analysis
+The error occurs because PostgreSQL functions are returning `character varying` (varchar) types that don't match the expected `text` type in column 3 of the result. This type mismatch happens because:
+
+1. **Function Return Types**: The SQL functions (`semantic_search`/`hybrid_search`) define their return columns as `varchar` while the client expects `text`
+2. **Implicit Casting**: PostgreSQL doesn't automatically cast between `varchar` and `text` in function return signatures
+3. **Column Position**: The error occurs in column 3, which is likely a "content" or "text" field in your search results
+
+### Solution
+Update the SQL functions to explicitly cast varchar columns to text:
+
+```sql
+-- Updated hybrid_search function
+create or replace function hybrid_search(query text, options jsonb)
+returns table (
+    id uuid,
+    similarity float8,
+    content text,  -- Changed from varchar to text
+    metadata jsonb
+)
+language plpgsql
+as $$
+begin
+  return query
+  select
+    embedding.id,
+    (embedding.embedding <=> text_embedding(options->>'model', query))::float8 as similarity,
+    embedding.content::text,  -- Explicit cast to text
+    embedding.metadata
+  from embeddings
+  order by similarity
+  limit (options->>'limit')::int;
+end;
+$$;
+
+-- Updated semantic_search function
+create or replace function semantic_search(query text, options jsonb)
+returns table (
+    id uuid,
+    similarity float8,
+    content text,  -- Changed from varchar to text
+    metadata jsonb
+)
+language plpgsql
+as $$
+begin
+  return query
+  select
+    id,
+    1 - (embedding <=> text_embedding(options->>'model', query)) as similarity,
+    content::text,  -- Explicit cast to text
+    metadata
+  from documents
+  order by similarity desc
+  limit (options->>'limit')::int;
+end;
+$$;
+```
+
+### Key Changes
+1. **Return Type Definition**:
+   ```sql
+   returns table (
+     ...
+     content text,  -- Explicit text type
+     ...
+   )
+   ```
+2. **Explicit Casting**:
+   ```sql
+   embedding.content::text
+   ```
+3. **Consistent Data Types**:
+   - Ensure all text-like columns use `text` type in return signatures
+   - Match client expectations for JSONB result parsing
+
+### Additional Recommendations
+1. **Database Migration**:
+   ```bash
+   alembic revision -m "fix search function return types"
+   ```
+2. **Verify Client Expectations**:
+   ```python
+   # Ensure client expects text type for content fields
+   class SearchResult(BaseModel):
+       id: UUID
+       similarity: float
+       content: str  # text type
+       metadata: dict
+   ```
+3. **Test with Explicit Types**:
+   ```sql
+   select pg_typeof(content) from hybrid_search('test', '{"model":"text-embedding-3-small","limit":5}');
+   ```
+
+This fix ensures type consistency between PostgreSQL functions and client expectations while maintaining full text search functionality.
+
+---
+
+_**User**_
+
+Here is the error, Can we able to add meilisearch into our system?
+
+---
+
+_**Assistant**_
+
+<think>
+Okay, let's tackle this problem. The user is encountering a PostgreSQL error (42804) where the return type of a column in their SQL function doesn't match the expected type. Specifically, column 3 is returning a varchar instead of text. They also asked about integrating Meilisearch into their system.
+
+First, I need to address the PostgreSQL error. The error occurs because the SQL functions (hybrid_search and semantic_search) are returning a varchar for the content column, but the client expects text. In PostgreSQL, varchar and text are similar, but not the same, so explicit casting is needed. The solution is to modify the SQL functions to cast the content column to text and update the return type definitions.
+
+Next, the user wants to integrate Meilisearch. Adding Meilisearch would provide full-text search capabilities, which can complement PostgreSQL's semantic search. I should outline the steps to integrate Meilisearch, including setting up the client, creating indexes, and updating the search service to use both PostgreSQL and Meilisearch.
+
+I need to ensure that the code examples are correct. For the PostgreSQL fix, altering the SQL functions to cast content as text and changing the return type to text should resolve the type mismatch. For Meilisearch, initializing the client, creating indexes, and adding documents to the index are essential steps. Also, updating the search service to utilize both systems would provide a hybrid approach.
+
+I should also mention the benefits of using Meilisearch, such as faster full-text search and typo tolerance, while noting that PostgreSQL handles vector searches. This hybrid approach leverages the strengths of both systems.
+
+Finally, I need to provide clear instructions and code snippets for both fixes, making sure they align with the existing project structure and dependencies. Including steps for installation, configuration, and testing will help the user implement the changes effectively.
+</think>
+
+```markdown
+# Hybrid Search Architecture Proposal
+
+## Current Issue Analysis
+The PostgreSQL error 42804 indicates a type mismatch in search functions. While we can fix this with:
+
+```sql
+-- In migrations/20240218120000_fix_search_return_types.sql
+ALTER FUNCTION hybrid_search RETURN SETOF search_results
+ALTER COLUMN content TYPE TEXT;
+
+ALTER FUNCTION semantic_search RETURN SETOF search_results  
+ALTER COLUMN content TYPE TEXT;
+```
+
+This addresses the immediate error, but considering the search requirements, adding Meilisearch provides significant benefits:
+
+## Meilisearch Integration Plan
+
+### 1. Add Meilisearch Dependency
+```bash
+pip install meilisearch
+```
+
+### 2. Configure Meilisearch Client
+```python:src/core/search/meilisearch_client.py
+from meilisearch import Client
+from meilisearch.index import Index
+import os
+
+class MeilisearchManager:
+    def __init__(self):
+        self.client = Client(
+            url=os.getenv("MEILI_URL", "http://localhost:7700"),
+            api_key=os.getenv("MEILI_MASTER_KEY")
+        )
+    
+    def get_index(self, index_name: str) -> Index:
+        return self.client.index(index_name)
+
+    async def create_video_index(self):
+        return self.client.create_index(
+            uid="videos",
+            settings={
+                "filterableAttributes": ["duration", "language"],
+                "sortableAttributes": ["created_at"],
+                "searchableAttributes": ["title", "transcript"]
+            }
+        )
+```
+
+### 3. Update Search Service
+```python:src/api/services/search_service.py
+class HybridSearchService:
+    def __init__(self, db, meilisearch_client):
+        self.db = db
+        self.meili = meilisearch_client
+        self.logger = logging.getLogger(__name__)
+
+    async def hybrid_search(self, query: str, options: dict):
+        try:
+            # PostgreSQL vector search
+            vector_results = await self._pg_vector_search(query, options)
+            
+            # Meilisearch full-text
+            text_results = await self.meili.get_index("videos").search(
+                query,
+                opt_params={
+                    "filter": options.get("filter"),
+                    "limit": options.get("limit", 10)
+                }
+            )
+            
+            return self._merge_results(vector_results, text_results)
+            
+        except Exception as e:
+            self.logger.error(f"Hybrid search failed: {str(e)}")
+            raise
+
+    def _merge_results(self, vector, text):
+        # Fusion algorithm (RRF)
+        combined = {}
+        for idx, result in enumerate(vector):
+            combined.setdefault(result['id'], {'vector_rank': idx+1})
+        for idx, result in enumerate(text['hits']):
+            combined.setdefault(result['id'], {'text_rank': idx+1})
+        
+        return sorted(combined.items(), 
+            key=lambda x: 1/(x[1].get('vector_rank', 10)) + 1/(x[1].get('text_rank', 10)),
+            reverse=True
+       
+
+---
+
 
 
 ---

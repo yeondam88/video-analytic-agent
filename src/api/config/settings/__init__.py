@@ -9,6 +9,16 @@ from .database import DatabaseSettings
 from .services import ExternalServicesSettings
 from .api import APISettings
 
+class MeilisearchSettings(BaseSettings):
+    """Meilisearch configuration settings."""
+    host: str = Field(default="http://localhost:7700")
+    api_key: str = Field(default="")
+    video_index: str = Field(default="videos")
+    segment_index: str = Field(default="segments")
+    embeddings_index: str = Field(default="embeddings")
+    max_total_hits: int = Field(default=100)
+    search_limit: int = Field(default=20)
+
 class Settings(BaseSettings):
     """Combined settings for the application."""
     
@@ -21,6 +31,7 @@ class Settings(BaseSettings):
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     services: ExternalServicesSettings = Field(default_factory=ExternalServicesSettings)
     api: APISettings = Field(default_factory=APISettings)
+    meilisearch: MeilisearchSettings = Field(default_factory=MeilisearchSettings)
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -62,6 +73,13 @@ class Settings(BaseSettings):
             'AUDIO_DIR': ('paths', 'AUDIO_DIR'),
             'STORAGE_DIR': ('paths', 'STORAGE_DIR'),
             'BASE_DIR': ('paths', 'BASE_DIR'),
+            'MEILISEARCH__HOST': ('meilisearch', 'host'),
+            'MEILISEARCH__API_KEY': ('meilisearch', 'api_key'),
+            'MEILISEARCH__VIDEO_INDEX': ('meilisearch', 'video_index'),
+            'MEILISEARCH__SEGMENT_INDEX': ('meilisearch', 'segment_index'),
+            'MEILISEARCH__EMBEDDINGS_INDEX': ('meilisearch', 'embeddings_index'),
+            'MEILISEARCH__MAX_TOTAL_HITS': ('meilisearch', 'max_total_hits'),
+            'MEILISEARCH__SEARCH_LIMIT': ('meilisearch', 'search_limit'),
         }
 
         # Copy values from flat env vars to nested settings

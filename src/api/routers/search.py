@@ -7,8 +7,9 @@ from loguru import logger
 from src.api.database import get_db
 from src.api.services.embedding_service import EmbeddingService
 from src.db.models import Video
+from src.api.services.search_service import SearchService
 
-router = APIRouter()
+router = APIRouter(tags=["search"])
 
 class SearchResult(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -20,33 +21,172 @@ class SearchResult(BaseModel):
     end_time: float
     similarity: float
 
-class SearchRequest(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    
-    query: str
-    limit: int = 5
-    threshold: float = 0.7
+class SearchFilters(BaseModel):
+    source: Optional[List[str]] = None
+    status: Optional[List[str]] = None
+    created_after: Optional[str] = None
+    created_before: Optional[str] = None
 
-@router.post("/segments", response_model=List[SearchResult])
+class SearchRequest(BaseModel):
+    query: str
+    filters: Optional[SearchFilters] = None
+    limit: Optional[int] = 20
+
+class SearchResponse(BaseModel):
+    keyword_matches: List[Dict[str, Any]]
+    semantic_matches: List[Dict[str, Any]]
+
+class BasicSearchRequest(BaseModel):
+    """Basic search request model."""
+    query: str
+    filters: Optional[Dict[str, Any]] = None
+    limit: Optional[int] = 20
+
+class BasicSearchResponse(BaseModel):
+    """Basic search response model."""
+    results: List[Dict[str, Any]]
+    count: int
+    query: str
+
+@router.post("/basic", response_model=BasicSearchResponse)
+def basic_search(
+    request: BasicSearchRequest,
+    db: Session = Depends(get_db)
+) -> BasicSearchResponse:
+    """
+    Basic search endpoint using Meilisearch only.
+    
+    Example request:
+    ```json
+    {
+        "query": "your search query",
+        "limit": 20,
+        "filters": {
+            "source": "YOUTUBE",
+            "status": "COMPLETED"
+        }
+    }
+    ```
+    """
+    try:
+        search_service = SearchService(db)
+        results = search_service.search_videos(
+            query=request.query,
+            filters=request.filters,
+            limit=request.limit or 20
+        )
+        
+        return BasicSearchResponse(
+            results=results,
+            count=len(results),
+            query=request.query
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to perform basic search: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/videos", response_model=List[Dict[str, Any]])
+async def search_videos(
+    request: SearchRequest,
+    db: Session = Depends(get_db)
+) -> List[Dict[str, Any]]:
+    """Search videos using keyword-based search."""
+    try:
+        search_service = SearchService(db)
+        filters = {}
+        
+        if request.filters:
+            if request.filters.source:
+                filters["source"] = request.filters.source
+            if request.filters.status:
+                filters["status"] = request.filters.status
+            if request.filters.created_after:
+                filters["created_at > "] = request.filters.created_after
+            if request.filters.created_before:
+                filters["created_at < "] = request.filters.created_before
+        
+        results = await search_service.search_videos(
+            query=request.query,
+            filters=filters,
+            limit=request.limit
+        )
+        return results
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/segments", response_model=List[Dict[str, Any]])
 async def search_segments(
     request: SearchRequest,
     db: Session = Depends(get_db)
-):
-    """Search for video segments using semantic similarity."""
+) -> List[Dict[str, Any]]:
+    """Search video segments using semantic search."""
     try:
-        service = EmbeddingService(db)
-        results = await service.search_similar_segments(
+        search_service = SearchService(db)
+        filters = {}
+        
+        if request.filters:
+            if request.filters.source:
+                filters["video.source"] = request.filters.source
+            if request.filters.created_after:
+                filters["created_at > "] = request.filters.created_after
+            if request.filters.created_before:
+                filters["created_at < "] = request.filters.created_before
+        
+        results = await search_service.semantic_segment_search(
             query=request.query,
-            limit=request.limit,
-            threshold=request.threshold
+            filters=filters,
+            limit=request.limit
         )
-        return [SearchResult(**result) for result in results]
+        return results
+        
     except Exception as e:
-        logger.error(f"Failed to search segments: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to search segments: {str(e)}"
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/hybrid", response_model=SearchResponse)
+def hybrid_search(
+    request: SearchRequest,
+    db: Session = Depends(get_db)
+) -> SearchResponse:
+    """Perform hybrid search combining keyword and semantic search."""
+    try:
+        search_service = SearchService(db)
+        filters = {}
+        
+        if request.filters:
+            if request.filters.source:
+                filters["source"] = request.filters.source
+            if request.filters.status:
+                filters["status"] = request.filters.status
+            if request.filters.created_after:
+                filters["created_at > "] = request.filters.created_after
+            if request.filters.created_before:
+                filters["created_at < "] = request.filters.created_before
+        
+        results = search_service.hybrid_search(
+            query=request.query,
+            filters=filters,
+            limit=request.limit
         )
+        return SearchResponse(**results)
+        
+    except Exception as e:
+        logger.error(f"Failed to perform hybrid search: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/reindex")
+async def reindex_all(
+    db: Session = Depends(get_db)
+) -> Dict[str, str]:
+    """Reindex all videos and segments in Meilisearch."""
+    try:
+        search_service = SearchService(db)
+        await search_service.reindex_all()
+        return {"message": "Successfully reindexed all documents"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/semantic", response_model=List[Dict[str, Any]])
 async def semantic_search(
@@ -123,7 +263,7 @@ async def search_video_segments(
         )
 
 @router.get("/videos", response_model=List[Dict[str, Any]])
-async def search_videos(
+async def search_videos_old(
     query: str = Query(..., description="Search query for videos"),
     limit: int = Query(default=10, ge=1, le=100),
     db: Session = Depends(get_db)

@@ -185,6 +185,19 @@ async def list_videos(
             thumbnail_url = get_thumbnail_url(video["url"])
             logger.info(f"Generated thumbnail URL for video {video['id']}: {thumbnail_url}")
             
+            # Handle timestamps with defaults
+            created_at = video.get("created_at")
+            if not created_at:
+                created_at = current_time
+            elif isinstance(created_at, str):
+                created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                
+            updated_at = video.get("updated_at")
+            if not updated_at:
+                updated_at = current_time
+            elif isinstance(updated_at, str):
+                updated_at = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+            
             videos.append(VideoResponse(
                 id=str(video["id"]),
                 url=video["url"],
@@ -195,8 +208,8 @@ async def list_videos(
                 error=video.get("error"),
                 progress=video.get("progress", 0.0),
                 steps_completed=video.get("steps_completed", []),
-                created_at=video.get("created_at", current_time),
-                updated_at=video.get("updated_at", current_time),
+                created_at=created_at,
+                updated_at=updated_at,
                 segments_count=0,
                 has_summary=False
             ))

@@ -86,33 +86,127 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   useEffect(() => {
     if (isLoom && videoId) {
       // Setup Loom player
-      const setupLoomPlayer = () => {
-        if (!window.loomPlayer && loomPlayerRef.current) {
-          window.loomPlayer = window.LoomPlayer && window.LoomPlayer.init({
-            element: loomPlayerRef.current
-          });
-          
-          window.loomPlayer?.on('ready', () => {
-            logger.info('Loom player ready');
-            setIsReady(true);
-            if (onReady) onReady();
-          });
-          
-          window.loomPlayer?.on('timeupdate', (time: number) => {
-            if (onTimeUpdate) onTimeUpdate(Math.floor(time));
-          });
-          
-          window.loomPlayer?.on('error', (error: any) => {
-            logger.error(`Loom player error: ${error}`);
-            setError(`Loom player error: ${error}`);
-          });
+      const setupLoomPlayer = async () => {
+        try {
+          if (!window.loomPlayer && loomPlayerRef.current) {
+            // First get the oembed data
+            const { oembed } = window as any;
+            if (oembed) {
+              const oembedData = await oembed(`https://www.loom.com/share/${videoId}`, {
+                width: 640,
+                height: 360
+              });
+              
+              // Create iframe with the oembed HTML
+              if (loomPlayerRef.current && oembedData.html) {
+                // Extract the iframe src from oembed HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = oembedData.html;
+                const iframeSrc = tempDiv.querySelector('iframe')?.src;
+                
+                if (iframeSrc) {
+                  loomPlayerRef.current.src = `${iframeSrc}&hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true`;
+                  
+                  // Setup the player
+                  const { setupLoom } = window as any;
+                  if (setupLoom) {
+                    const [player] = await setupLoom({}, [loomPlayerRef.current]);
+                    window.loomPlayer = player;
+                    
+                    logger.info('Loom player ready');
+                    setIsReady(true);
+                    setError(null);
+                    if (onReady) onReady();
+                    
+                    // Set up time update interval
+                    if (timeUpdateIntervalRef.current) {
+                      clearInterval(timeUpdateIntervalRef.current);
+                    }
+                    
+                    timeUpdateIntervalRef.current = setInterval(async () => {
+                      try {
+                        if (window.loomPlayer && !isSeekingRef.current) {
+                          const time = await window.loomPlayer.getCurrentTime();
+                          const currentTime = Math.floor(time);
+                          if (currentTime !== lastReportedTimeRef.current) {
+                            lastReportedTimeRef.current = currentTime;
+                            if (onTimeUpdate) onTimeUpdate(currentTime);
+                          }
+                        }
+                      } catch (error) {
+                        logger.error(`Failed to get current time from Loom player: ${error}`);
+                      }
+                    }, 200);
+                    
+                    // Initial seek if needed
+                    if (currentTime > 0) {
+                      logger.info(`Initial seek to ${currentTime}s in Loom player`);
+                      isSeekingRef.current = true;
+                      if (seekTimeoutRef.current) {
+                        clearTimeout(seekTimeoutRef.current);
+                      }
+                      seekTimeoutRef.current = setTimeout(async () => {
+                        try {
+                          await window.loomPlayer.seekTo(currentTime);
+                          if (isPlaying) {
+                            await window.loomPlayer.play();
+                          }
+                          isSeekingRef.current = false;
+                        } catch (error) {
+                          logger.error(`Failed to perform initial seek in Loom player: ${error}`);
+                          isSeekingRef.current = false;
+                        }
+                      }, 500);
+                    }
+                    
+                    // Set up event listeners
+                    window.loomPlayer.on('play', () => {
+                      logger.info('Loom player started playing');
+                      setIsPlaying(true);
+                      if (onStateChange) {
+                        onStateChange({ data: 1 });
+                      }
+                    });
+                    
+                    window.loomPlayer.on('pause', () => {
+                      logger.info('Loom player paused');
+                      setIsPlaying(false);
+                      if (onStateChange) {
+                        onStateChange({ data: 2 });
+                      }
+                    });
+                    
+                    window.loomPlayer.on('ended', () => {
+                      logger.info('Loom player ended');
+                      setIsPlaying(false);
+                      if (onStateChange) {
+                        onStateChange({ data: 0 });
+                      }
+                    });
+                    
+                    window.loomPlayer.on('error', (error: any) => {
+                      logger.error(`Loom player error: ${error}`);
+                      setError(`Loom player error: ${error}`);
+                    });
+                  }
+                } else {
+                  throw new Error('Could not extract iframe src from oembed HTML');
+                }
+              }
+            } else {
+              throw new Error('Loom oembed function not found');
+            }
+          }
+        } catch (error) {
+          logger.error(`Failed to setup Loom player: ${error}`);
+          setError(`Failed to setup Loom player: ${error}`);
         }
       };
 
       // Load Loom SDK if not already loaded
-      if (!document.querySelector('script[src*="sdk.loom.com"]')) {
+      if (!document.querySelector('script[src*="loom.com"]')) {
         const script = document.createElement('script');
-        script.src = 'https://sdk.loom.com/player';
+        script.src = 'https://www.loom.com/embed/sdk.js';
         script.async = true;
         script.onload = setupLoomPlayer;
         script.onerror = (e) => {
@@ -123,8 +217,26 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       } else {
         setupLoomPlayer();
       }
+      
+      // Cleanup
+      return () => {
+        if (timeUpdateIntervalRef.current) {
+          clearInterval(timeUpdateIntervalRef.current);
+        }
+        if (seekTimeoutRef.current) {
+          clearTimeout(seekTimeoutRef.current);
+        }
+        if (window.loomPlayer) {
+          try {
+            window.loomPlayer.destroy();
+            window.loomPlayer = undefined;
+          } catch (error) {
+            logger.error(`Failed to destroy Loom player: ${error}`);
+          }
+        }
+      };
     }
-  }, [isLoom, videoId, onReady, onTimeUpdate]);
+  }, [isLoom, videoId, onReady, onTimeUpdate, onStateChange, currentTime, isPlaying]);
 
   // Handle YouTube player ready
   const onYouTubePlayerReady = (event: any) => {
@@ -257,11 +369,25 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             }
           }, 200);
         } else if (isLoom && window.loomPlayer) {
-          window.loomPlayer.seekTo(currentTime);
-          if (isPlaying) {
-            window.loomPlayer.play();
-          }
           logger.info(`Seeking Loom player to ${currentTime}s`);
+          isSeekingRef.current = true;
+          if (seekTimeoutRef.current) {
+            clearTimeout(seekTimeoutRef.current);
+          }
+          seekTimeoutRef.current = setTimeout(() => {
+            try {
+              window.loomPlayer.seekTo(currentTime);
+              if (isPlaying) {
+                window.loomPlayer.play();
+              }
+              logger.info(`Successfully seeked Loom player to ${currentTime}s`);
+              isSeekingRef.current = false;
+            } catch (error) {
+              logger.error(`Failed to seek Loom player: ${error}`);
+              setError(`Failed to seek to ${currentTime}s: ${error}`);
+              isSeekingRef.current = false;
+            }
+          }, 200);
         }
       } catch (error) {
         logger.error(`Failed to seek to time ${currentTime}: ${error}`);
@@ -279,6 +405,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
       if (seekTimeoutRef.current) {
         clearTimeout(seekTimeoutRef.current);
+      }
+      if (window.loomPlayer) {
+        try {
+          window.loomPlayer.destroy();
+          window.loomPlayer = undefined;
+        } catch (error) {
+          logger.error(`Failed to destroy Loom player: ${error}`);
+        }
       }
     };
   }, []);
@@ -328,9 +462,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return (
       <iframe
         ref={loomPlayerRef}
-        src={`https://www.loom.com/embed/${videoId}`}
+        src={`https://www.loom.com/embed/${videoId}?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true`}
         className={`${className} border-0`}
+        frameBorder="0"
         allowFullScreen
+        allow="autoplay; fullscreen; picture-in-picture"
+        style={{ width: '100%', height: '100%' }}
       />
     );
   }
@@ -342,12 +479,23 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   );
 };
 
-// Add TypeScript type definition for Loom SDK
+// Update TypeScript type definition for Loom SDK
 declare global {
   interface Window {
-    LoomPlayer?: {
-      init: (config: { element: HTMLIFrameElement }) => any;
-    };
+    setupLoom?: (config: any, elements: HTMLIFrameElement[]) => Promise<any[]>;
+    oembed?: (linkUrl: string, options?: { width?: number; height?: number; gifThumbnail?: boolean }) => Promise<{
+      type: 'video';
+      html: string;
+      title: string;
+      height: number | null;
+      width: number | null;
+      provider_name: 'Loom';
+      provider_url: string;
+      thumbnail_height: number;
+      thumbnail_width: number;
+      thumbnail_url: string;
+      duration: number;
+    }>;
     loomPlayer?: any;
   }
 } 

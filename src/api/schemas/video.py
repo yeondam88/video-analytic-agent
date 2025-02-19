@@ -25,8 +25,8 @@ class VideoInDB(VideoBase):
     id: str = Field(..., description="Unique video identifier")
     status: VideoStatus
     duration: Optional[float] = Field(None, description="Video duration in seconds")
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
     deleted_at: Optional[datetime] = None
 
 class VideoResponse(VideoInDB):
@@ -40,6 +40,9 @@ class VideoResponse(VideoInDB):
         ge=0,
         le=100
     )
+    error: Optional[str] = None
+    progress: Optional[float] = Field(0.0, ge=0, le=100)
+    steps_completed: List[str] = Field(default_factory=list)
 
 class VideoList(BaseModel):
     """Schema for list of videos response."""

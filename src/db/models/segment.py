@@ -3,9 +3,10 @@ from datetime import datetime
 from typing import Any, Dict, Optional, List
 
 from sqlalchemy import Column, DateTime, Integer, String, Text, ForeignKey, Float
-from sqlalchemy.dialects.postgresql import JSONB, ARRAY
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from pgvector.sqlalchemy import Vector
 
 from src.db.models.base import BaseModel
 
@@ -24,7 +25,7 @@ class Segment(BaseModel):
     display_text = Column(Text)
     title = Column(Text)
     segment_metadata = Column("metadata", JSONB, nullable=False, server_default='{}')
-    embedding = Column("embedding", ARRAY(Float, dimensions=1536))
+    embedding = Column(Vector(1536), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True))
@@ -41,13 +42,13 @@ class Segment(BaseModel):
             "id": self.id,
             "video_id": self.video_id,
             "speaker_id": self.speaker_id,
-            "start_time": self.start_time,
-            "end_time": self.end_time,
+            "start_time": float(self.start_time) if self.start_time is not None else None,
+            "end_time": float(self.end_time) if self.end_time is not None else None,
             "text": self.text,
             "display_text": self.display_text,
             "title": self.title,
             "metadata": self.segment_metadata or {},
-            "embedding": self.embedding,
+            "embedding": list(self.embedding) if self.embedding is not None else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None

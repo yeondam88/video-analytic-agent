@@ -272,6 +272,15 @@ List of tools:
   6. Transform the data if needed (using CASE statements)
   7. Insert the transformed data back
   8. Clean up temporary tables
+- When converting vector types:
+  1. Create a temporary table to store the vector data
+  2. Use array_to_string(embedding::float[], ',') to convert vector to string
+  3. Drop the existing column
+  4. Add the new column with the target type
+  5. Use string_to_array(embedding, ',')::float[] to convert back to array
+  6. Clean up temporary tables
+  7. Handle identity columns properly by not modifying them
+  8. Test the migration with real data before deployment
 
 ## Settings Best Practices
 
@@ -471,6 +480,28 @@ List of tools:
 - Create new enum types before using them in CASE statements
 - Use proper COALESCE for nullable columns
 - Handle array types properly by converting to appropriate scalar types
+
+### Meilisearch Integration
+- Convert all numeric IDs to strings when indexing
+- Ensure all metadata values are JSON serializable
+- Convert dates to ISO format strings
+- Handle missing hits in search results with empty array fallback
+- Remove async/await since Meilisearch client is synchronous
+- Convert all numeric values to appropriate types (float, int)
+- Handle nullable fields with proper defaults
+- Ensure proper error handling and logging
+- Test search results with various data types
+
+### UI Component Best Practices
+- Use @headlessui/react for accessible UI components
+- Implement proper type definitions for all props
+- Handle loading and empty states for each view
+- Use responsive grid layouts with proper breakpoints
+- Implement proper filtering and grouping logic
+- Add count badges for better UX
+- Use consistent date formatting
+- Handle errors gracefully with user feedback
+- Test components with various data scenarios
 
 # Scratchpad
 
