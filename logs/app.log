@@ -133,3 +133,61 @@
 2025-02-20 09:56:53 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 168 - segment_completed - VideoStatus.PROCESSING (76.66666666666667%)
 2025-02-20 09:56:53 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 168 - processing_completed - VideoStatus.COMPLETED (100%)
 2025-02-20 09:56:53 | INFO     | src.pipeline.video_processor:process_video:32 - Successfully processed video 168
+2025-02-20 10:01:48 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-02-20 10:01:49 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-02-20 10:01:49 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173']
+2025-02-20 10:01:49 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-02-20 10:02:04 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-02-20 10:02:05 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-02-20 10:02:05 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173']
+2025-02-20 10:02:05 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-02-20 10:02:27 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-02-20 10:02:28 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-02-20 10:02:28 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173']
+2025-02-20 10:02:28 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-02-20 10:03:10 | INFO     | src.api.services.queue_service:add_to_queue:42 - Added 1 items to queue (bulk=False)
+2025-02-20 10:03:10 | INFO     | src.api.services.video_service:create_video:72 - Created video entry: 169
+2025-02-20 10:03:10 | INFO     | src.api.services.video_service:process_video:113 - Starting video processing for video 169
+2025-02-20 10:03:10 | INFO     | src.pipeline.video_processor:process_video:28 - Starting video processing for video 169
+2025-02-20 10:03:10 | INFO     | src.pipeline.coordinator:process_video:36 - Processing video 169 (wazHMMaiDEA)
+2025-02-20 10:03:10 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - download_started - VideoStatus.PROCESSING (5.0%)
+2025-02-20 10:03:10 | INFO     | src.pipeline.video.downloader:_download_youtube:152 - Downloading YouTube video wazHMMaiDEA
+2025-02-20 10:03:12 | INFO     | src.pipeline.video.downloader:_download_youtube:181 - Starting download of wazHMMaiDEA
+2025-02-20 10:03:21 | INFO     | src.pipeline.video.downloader:_download_youtube:187 - Successfully downloaded video to storage/videos/wazHMMaiDEA.mp4
+2025-02-20 10:03:21 | INFO     | src.pipeline.video.downloader:download_video:134 - Successfully downloaded video wazHMMaiDEA
+2025-02-20 10:03:21 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - download_completed - VideoStatus.PROCESSING (5.0%)
+2025-02-20 10:03:21 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - extract_audio_started - VideoStatus.PROCESSING (21.666666666666664%)
+2025-02-20 10:03:21 | INFO     | src.pipeline.audio.extractor:extract_audio:39 - Extracting audio from video wazHMMaiDEA
+2025-02-20 10:03:22 | INFO     | src.pipeline.audio.extractor:extract_audio:57 - Successfully extracted audio to storage/audio/wazHMMaiDEA.wav
+2025-02-20 10:03:22 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - extract_audio_completed - VideoStatus.PROCESSING (21.666666666666664%)
+2025-02-20 10:03:22 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - transcribe_started - VideoStatus.PROCESSING (45.0%)
+2025-02-20 10:03:22 | INFO     | src.pipeline.transcription.transcriber:transcribe:190 - Attempt 1 to transcribe video 169 using model 'base'
+2025-02-20 10:03:22 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:79 - Audio file size: 13.13 MB
+2025-02-20 10:03:22 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:84 - Sending request to Deepgram for storage/audio/wazHMMaiDEA.wav
+2025-02-20 10:03:22 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:85 - Request parameters: {'model': 'nova-2', 'smart_format': 'true', 'punctuate': 'true', 'diarize': 'true', 'utterances': 'true', 'detect_language': 'true'}
+2025-02-20 10:03:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:108 - Successful response from Deepgram. Response structure:
+2025-02-20 10:03:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:109 - - Has results: True
+2025-02-20 10:03:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:114 - - Detected language: None
+2025-02-20 10:03:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:117 - - Number of channels: 1
+2025-02-20 10:03:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:120 - - Number of alternatives: 1
+2025-02-20 10:03:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:123 - - Has transcript: True
+2025-02-20 10:03:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:124 - - Transcript length: 6272
+2025-02-20 10:03:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:125 - - First 100 chars: Agents are the new apps, and we expect someday for there to be thousands of agents available. We wan
+2025-02-20 10:03:41 | INFO     | src.pipeline.transcription.transcriber:_save_transcription:171 - Saved transcription for video 169 (language: unknown)
+2025-02-20 10:03:41 | INFO     | src.pipeline.transcription.transcriber:transcribe:214 - Successfully transcribed video 169 (confidence: 0.99954253)
+2025-02-20 10:03:41 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - transcribe_completed - VideoStatus.PROCESSING (45.0%)
+2025-02-20 10:03:41 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - segment_started - VideoStatus.PROCESSING (76.66666666666667%)
+2025-02-20 10:03:41 | INFO     | src.pipeline.coordinator:_segment_video:229 - Starting segmentation for video 169
+2025-02-20 10:03:41 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - segmentation_started - VideoStatus.SEGMENTING (76.66666666666667%)
+2025-02-20 10:03:47 | INFO     | src.pipeline.segmentation.processor:_save_segments:399 - Attempting to save 19 segments to database
+2025-02-20 10:03:47 | INFO     | src.pipeline.segmentation.processor:_save_segments:410 - Successfully saved 19 segments
+2025-02-20 10:03:47 | INFO     | src.pipeline.segmentation.processor:process_transcript:132 - Saved 19 segments for video 169
+2025-02-20 10:03:54 | INFO     | src.pipeline.segmentation.processor:_generate_video_summary:356 - Generated video summary with 5 key points
+2025-02-20 10:03:54 | INFO     | src.pipeline.segmentation.processor:_update_video_summary:572 - Updated summary and insights for video 169
+2025-02-20 10:03:54 | INFO     | src.pipeline.segmentation.processor:process_transcript:139 - Updated video 169 with summary
+2025-02-20 10:03:54 | INFO     | src.pipeline.coordinator:_segment_video:246 - Created 19 segments for video 169
+2025-02-20 10:03:54 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - segmentation_completed - VideoStatus.PROCESSING (100.0%)
+2025-02-20 10:03:54 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - segment_completed - VideoStatus.PROCESSING (76.66666666666667%)
+2025-02-20 10:03:54 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - processing_completed - VideoStatus.COMPLETED (100%)
+2025-02-20 10:03:54 | INFO     | src.pipeline.video_processor:process_video:32 - Successfully processed video 169
+2025-02-20 10:03:54 | INFO     | src.api.services.video_service:process_video:118 - Video 169 processed successfully, starting cleanup

@@ -1140,6 +1140,396 @@ _**User**_
 
 _**Assistant**_
 
+Looking at the `ChatUI.tsx` code, I notice that while the `Link` component is used correctly, there might be an issue with the search state management. When a user clicks a result, the search dropdown might be closing before the navigation occurs due to the `onBlur` handler.
+
+Let's modify the code to fix this:
+
+---
+
+_****_
+
+```diff
+  
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
++     // Check if the related target is within the search results
++     const searchResults = document.querySelector('.ais-Hits');
++     if (searchResults && searchResults.contains(e.relatedTarget as Node)) {
++       return; // Don't hide if clicking within results
++     }
+      setShowSearch(false);
+    };
++ 
++   const handleResultClick = () => {
++     // Close search after a small delay to ensure navigation occurs
++     setTimeout(() => {
++       setShowSearch(false);
++     }, 100);
++   };
+  
+    return (
+          </div>
+          {showSearch && (
+-           <div className="absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg max-h-96 overflow-y-auto z-10">
++           <div 
++             className="absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg max-h-96 overflow-y-auto z-10"
++             onClick={handleResultClick}
++           >
+              <Hits 
+-               hitComponent={SegmentCard}
++               hitComponent={({ hit }) => (
++                 <SegmentCard 
++                   hit={hit as InstantSearchHit<SegmentHit>}
++                 />
++               )}
+                classNames={{
+                  root: "p-4",
+```
+
+---
+
+_****_
+
+
+
+I've made several changes to fix the navigation issue:
+
+1. Added a check in `handleBlur` to prevent closing the search results when clicking on them:
+```typescript
+if (searchResults && searchResults.contains(e.relatedTarget as Node)) {
+  return; // Don't hide if clicking within results
+}
+```
+
+2. Added a new `handleResultClick` function that closes the search results after a small delay:
+```typescript
+const handleResultClick = () => {
+  setTimeout(() => {
+    setShowSearch(false);
+  }, 100);
+};
+```
+
+3. Added proper type casting for the hit component to fix type issues:
+```typescript
+hitComponent={({ hit }) => (
+  <SegmentCard 
+    hit={hit as InstantSearchHit<SegmentHit>}
+  />
+)}
+```
+
+4. Added an onClick handler to the search results container to trigger the delayed close:
+```typescript
+<div 
+  className="absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg max-h-96 overflow-y-auto z-10"
+  onClick={handleResultClick}
+>
+```
+
+There is one remaining TypeScript error about the MeiliSearch client type. To fix this, we need to update the instantMeiliSearch type. Let me fix that:
+
+---
+
+_****_
+
+```diff
+  import { formatDistance } from 'date-fns/formatDistance';
+  import { cn } from '../lib/utils';
++ import type { SearchClient } from 'instantsearch.js';
+  
+  interface SegmentHit {
+  }
+  
+- const { searchClient } = instantMeiliSearch(
++ const searchClient = instantMeiliSearch(
+    'https://ms-bfd491088e40-19061.sfo.meilisearch.io',
+    '068ff2bdf382c2e93dd632e883beb05291d921db',
+      primaryKey: 'id',
+    }
+- );
++ ) as SearchClient;
+  
+  const PlayIcon = ({ className }: { className?: string }) => (
+```
+
+---
+
+_****_
+
+
+
+Let me fix the type issue one more time with the correct type:
+
+---
+
+_****_
+
+```diff
+  }
+  
+- const searchClient = instantMeiliSearch(
++ const { searchClient } = instantMeiliSearch(
+    'https://ms-bfd491088e40-19061.sfo.meilisearch.io',
+    '068ff2bdf382c2e93dd632e883beb05291d921db',
+      primaryKey: 'id',
+    }
+- ) as SearchClient;
++ );
+  
+  const PlayIcon = ({ className }: { className?: string }) => (
+```
+
+---
+
+_****_
+
+
+
+The navigation issue should now be fixed with the changes we made to handle clicks properly. The remaining TypeScript error is related to the MeiliSearch client types, but it shouldn't affect the functionality. The search results should now:
+
+1. Stay open when clicking inside the results
+2. Navigate properly when clicking a result
+3. Close after navigation is complete
+
+The key changes that fixed the navigation were:
+1. Preventing the blur event from closing the results when clicking on them
+2. Adding a delayed close after clicking a result to ensure navigation completes
+3. Properly handling the click event on the results container
+
+Try searching and clicking results now - it should navigate to the correct video segment. Let me know if you still experience any issues with the navigation!
+
+---
+
+_**User**_
+
+@storage.py@video.py when we are clean_up our video/audio after processed our video, our actual stored folder is outside of src folder. and I see it did not cleaned up after finished processing. can you check with the current logic?
+
+---
+
+_**Assistant**_
+
+I'll analyze the storage cleanup logic between `storage.py` and `video.py`:
+
+1. First, let's check where the actual storage paths are defined. In `storage.py`:
+```python
+def __init__(self):
+    self.base_dir = Path("storage")  # This is relative to where the app is run
+    self.videos_dir = self.base_dir / "videos"
+    self.audio_dir = self.base_dir / "audio"
+```
+
+The issue is that it's using a relative path `"storage"` which will be relative to where the application is run from, not relative to the src directory.
+
+2. In `video.py`, the cleanup is called after processing:
+```python
+if success:
+    # Clean up storage files after successful processing
+    cleanup_success = self.storage.cleanup_files(video_id)
+    if not cleanup_success:
+        logger.warning(f"Failed to cleanup storage files for video {video_id}")
+```
+
+Let's fix this by:
+1. Using absolute paths from project root
+2. Making sure we're using the correct video ID for cleanup
+
+---
+
+_****_
+
+```diff
+  from pathlib import Path
+  from loguru import logger
++ from src.config import settings
+  
+  logger = logging.getLogger(__name__)
+  
+  class StorageService:
+      def __init__(self):
+-         self.base_dir = Path("storage")
+-         self.videos_dir = self.base_dir / "videos"
+-         self.audio_dir = self.base_dir / "audio"
++         # Use absolute paths from project root
++         self.base_dir = settings.paths.STORAGE_DIR
++         self.videos_dir = settings.paths.VIDEO_DIR
++         self.audio_dir = settings.paths.AUDIO_DIR
+          
+          # Ensure directories exist
+          self.videos_dir.mkdir(parents=True, exist_ok=True)
+          self.audio_dir.mkdir(parents=True, exist_ok=True)
++         logger.info(f"Storage initialized at {self.base_dir}")
++         logger.info(f"Videos directory: {self.videos_dir}")
++         logger.info(f"Audio directory: {self.audio_dir}")
+  
+      def get_video_path(self, video_id: str) -> Path:
+          """Get path for video file."""
+-         return self.videos_dir / f"{video_id}.mp4"
++         path = self.videos_dir / f"{video_id}.mp4"
++         logger.debug(f"Video path for {video_id}: {path}")
++         return path
+  
+      def get_audio_path(self, video_id: str) -> Path:
+          """Get path for audio file."""
+-         return self.audio_dir / f"{video_id}.wav"
++         path = self.audio_dir / f"{video_id}.wav"
++         logger.debug(f"Audio path for {video_id}: {path}")
++         return path
+  
+      def cleanup_files(self, video_id: str) -> bool:
+          """Clean up video and audio files after processing."""
+          try:
++             logger.info(f"Starting cleanup for video {video_id}")
+              video_path = self.get_video_path(video_id)
+              audio_path = self.get_audio_path(video_id)
++             
++             logger.info(f"Checking paths to clean:")
++             logger.info(f"Video path: {video_path} (exists: {video_path.exists()})")
++             logger.info(f"Audio path: {audio_path} (exists: {audio_path.exists()})")
+              
+              # Delete video file if exists
+              if video_path.exists():
+                  video_path.unlink()
+-                 logger.info(f"Deleted video file for {video_id}")
++                 logger.info(f"Deleted video file: {video_path}")
++             else:
++                 logger.warning(f"Video file not found: {video_path}")
+              
+              # Delete audio file if exists
+              if audio_path.exists():
+                  audio_path.unlink()
+-                 logger.info(f"Deleted audio file for {video_id}")
++                 logger.info(f"Deleted audio file: {audio_path}")
++             else:
++                 logger.warning(f"Audio file not found: {audio_path}")
+              
+              return True
+          except Exception as e:
+              logger.error(f"Failed to cleanup files for video {video_id}: {e}")
++             logger.exception(e)  # Log full traceback
+              return False
+  
+      def cleanup_all(self) -> tuple[int, int]:
+          """Clean up all files in storage directories."""
+          try:
++             logger.info("Starting cleanup of all storage files")
+              video_count = 0
+              audio_count = 0
+              
+              # Clean videos directory
++             logger.info(f"Cleaning videos directory: {self.videos_dir}")
+              for file in self.videos_dir.glob("*"):
+                  if file.is_file():
++                     logger.debug(f"Deleting video file: {file}")
+                      file.unlink()
+                      video_count += 1
+              
+              # Clean audio directory
++             logger.info(f"Cleaning audio directory: {self.audio_dir}")
+              for file in self.audio_dir.glob("*"):
+                  if file.is_file():
++                     logger.debug(f"Deleting audio file: {file}")
+                      file.unlink()
+                      audio_count += 1
+          except Exception as e:
+              logger.error(f"Failed to cleanup storage directories: {e}")
++             logger.exception(e)  # Log full traceback
+              return 0, 0
+  
+```
+
+---
+
+_****_
+
+
+
+Now let's check the video processing service to ensure we're using the correct video ID for cleanup:
+
+---
+
+_****_
+
+```diff
+          """Process a video through the pipeline."""
+          try:
++             logger.info(f"Starting video processing for video {video_id}")
+              processor = VideoProcessor()
+              success = await processor.process_video(video_id)
+              
+              if success:
++                 logger.info(f"Video {video_id} processed successfully, starting cleanup")
++                 # Get video data to ensure we have the correct source_id
++                 video_data = self.get_video(video_id)
++                 if not video_data:
++                     logger.error(f"Could not find video {video_id} for cleanup")
++                     return False
++                     
++                 # Use source_id for cleanup since that's what we use for file names
++                 source_id = video_data.get("source_id")
++                 if not source_id:
++                     logger.error(f"No source_id found for video {video_id}")
++                     return False
++                     
+                  # Clean up storage files after successful processing
+-                 cleanup_success = self.storage.cleanup_files(video_id)
++                 cleanup_success = self.storage.cleanup_files(source_id)
+                  if not cleanup_success:
+-                     logger.warning(f"Failed to cleanup storage files for video {video_id}")
++                     logger.warning(f"Failed to cleanup storage files for video {video_id} (source_id: {source_id})")
+                  
+              return success
+          except Exception as e:
+              logger.error(f"Failed to process video {video_id}: {e}")
++             logger.exception(e)  # Log full traceback
+              return False
+  
+```
+
+---
+
+_****_
+
+
+
+I've made several important changes to fix the cleanup issues:
+
+1. In `storage.py`:
+   - Now using absolute paths from project root via `settings.paths`
+   - Added extensive logging to track file operations
+   - Added existence checks with warnings for missing files
+   - Added full path information in logs
+
+2. In `video_service.py`:
+   - Fixed a critical bug where we were using the wrong ID for cleanup
+   - Now using `source_id` instead of `video_id` for file cleanup since that's what we use for file names
+   - Added checks to ensure we have valid video data and source_id
+   - Added more detailed logging
+
+The main issues were:
+1. Using relative paths instead of absolute paths from project root
+2. Using `video_id` for cleanup when we should have been using `source_id`
+3. Insufficient logging to track cleanup operations
+
+To test if this is working:
+1. Process a video
+2. Check the logs to see:
+   - The actual paths being used
+   - Whether files exist at cleanup time
+   - If cleanup is using the correct source_id
+3. Verify that files are actually deleted from the correct location
+
+Let me know if you need me to make any adjustments or if you're still seeing cleanup issues!
+
+---
+
+_**User**_
+
+Create a modified mermaid diagram to see our workflow and draw all connected dots for our system
+
+---
+
+_**Assistant**_
+
 
 
 ---

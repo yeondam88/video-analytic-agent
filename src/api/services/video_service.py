@@ -110,18 +110,33 @@ class VideoService:
     async def process_video(self, video_id: str) -> bool:
         """Process a video through the pipeline."""
         try:
+            logger.info(f"Starting video processing for video {video_id}")
             processor = VideoProcessor()
             success = await processor.process_video(video_id)
             
             if success:
+                logger.info(f"Video {video_id} processed successfully, starting cleanup")
+                # Get video data to ensure we have the correct source_id
+                video_data = self.get_video(video_id)
+                if not video_data:
+                    logger.error(f"Could not find video {video_id} for cleanup")
+                    return False
+                    
+                # Use source_id for cleanup since that's what we use for file names
+                source_id = video_data.get("source_id")
+                if not source_id:
+                    logger.error(f"No source_id found for video {video_id}")
+                    return False
+                    
                 # Clean up storage files after successful processing
-                cleanup_success = self.storage.cleanup_files(video_id)
+                cleanup_success = self.storage.cleanup_files(source_id)
                 if not cleanup_success:
-                    logger.warning(f"Failed to cleanup storage files for video {video_id}")
+                    logger.warning(f"Failed to cleanup storage files for video {video_id} (source_id: {source_id})")
                 
             return success
         except Exception as e:
             logger.error(f"Failed to process video {video_id}: {e}")
+            logger.exception(e)  # Log full traceback
             return False
 
     def get_video(self, video_id: str) -> Optional[Dict[str, Any]]:

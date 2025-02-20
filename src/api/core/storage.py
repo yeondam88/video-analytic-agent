@@ -8,63 +8,87 @@ import uuid
 import shutil
 from pathlib import Path
 from loguru import logger
+from src.config import settings
 
 logger = logging.getLogger(__name__)
 
 class StorageService:
     def __init__(self):
-        self.base_dir = Path("storage")
-        self.videos_dir = self.base_dir / "videos"
-        self.audio_dir = self.base_dir / "audio"
+        # Use absolute paths from project root
+        self.base_dir = settings.paths.STORAGE_DIR
+        self.videos_dir = settings.paths.VIDEO_DIR
+        self.audio_dir = settings.paths.AUDIO_DIR
         
         # Ensure directories exist
         self.videos_dir.mkdir(parents=True, exist_ok=True)
         self.audio_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Storage initialized at {self.base_dir}")
+        logger.info(f"Videos directory: {self.videos_dir}")
+        logger.info(f"Audio directory: {self.audio_dir}")
 
     def get_video_path(self, video_id: str) -> Path:
         """Get path for video file."""
-        return self.videos_dir / f"{video_id}.mp4"
+        path = self.videos_dir / f"{video_id}.mp4"
+        logger.debug(f"Video path for {video_id}: {path}")
+        return path
 
     def get_audio_path(self, video_id: str) -> Path:
         """Get path for audio file."""
-        return self.audio_dir / f"{video_id}.wav"
+        path = self.audio_dir / f"{video_id}.wav"
+        logger.debug(f"Audio path for {video_id}: {path}")
+        return path
 
     def cleanup_files(self, video_id: str) -> bool:
         """Clean up video and audio files after processing."""
         try:
+            logger.info(f"Starting cleanup for video {video_id}")
             video_path = self.get_video_path(video_id)
             audio_path = self.get_audio_path(video_id)
+            
+            logger.info(f"Checking paths to clean:")
+            logger.info(f"Video path: {video_path} (exists: {video_path.exists()})")
+            logger.info(f"Audio path: {audio_path} (exists: {audio_path.exists()})")
             
             # Delete video file if exists
             if video_path.exists():
                 video_path.unlink()
-                logger.info(f"Deleted video file for {video_id}")
+                logger.info(f"Deleted video file: {video_path}")
+            else:
+                logger.warning(f"Video file not found: {video_path}")
             
             # Delete audio file if exists
             if audio_path.exists():
                 audio_path.unlink()
-                logger.info(f"Deleted audio file for {video_id}")
+                logger.info(f"Deleted audio file: {audio_path}")
+            else:
+                logger.warning(f"Audio file not found: {audio_path}")
             
             return True
         except Exception as e:
             logger.error(f"Failed to cleanup files for video {video_id}: {e}")
+            logger.exception(e)  # Log full traceback
             return False
 
     def cleanup_all(self) -> tuple[int, int]:
         """Clean up all files in storage directories."""
         try:
+            logger.info("Starting cleanup of all storage files")
             video_count = 0
             audio_count = 0
             
             # Clean videos directory
+            logger.info(f"Cleaning videos directory: {self.videos_dir}")
             for file in self.videos_dir.glob("*"):
                 if file.is_file():
+                    logger.debug(f"Deleting video file: {file}")
                     file.unlink()
                     video_count += 1
             
             # Clean audio directory
+            logger.info(f"Cleaning audio directory: {self.audio_dir}")
             for file in self.audio_dir.glob("*"):
                 if file.is_file():
+                    logger.debug(f"Deleting audio file: {file}")
                     file.unlink()
                     audio_count += 1
             
@@ -72,6 +96,7 @@ class StorageService:
             return video_count, audio_count
         except Exception as e:
             logger.error(f"Failed to cleanup storage directories: {e}")
+            logger.exception(e)  # Log full traceback
             return 0, 0
 
     async def download_video(self, url: str) -> str:
