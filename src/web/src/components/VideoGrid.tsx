@@ -6,6 +6,8 @@ import { Progress } from '@/components/ui/progress'
 import { Video, VideoStatus, VideoSource } from '@/types/video'
 import { Tab } from '@headlessui/react'
 import { cn } from '@/lib/utils'
+import { Youtube } from 'lucide-react'
+import { VideoIcon } from 'lucide-react'
 
 interface VideoGridProps {
   videos: Array<{
@@ -21,6 +23,16 @@ interface VideoGridProps {
   }>;
   isLoading?: boolean;
 }
+
+const getSourceIcon = (source: VideoSource) => {
+  const iconMapping: Record<VideoSource, JSX.Element> = {
+    [VideoSource.YOUTUBE]: <Youtube className="w-5 h-5 text-red-600" />,
+    [VideoSource.LOOM]: <VideoIcon className="w-5 h-5 text-purple-600" />,
+    [VideoSource.LOCAL]: <VideoIcon className="w-5 h-5 text-gray-600" />,
+    [VideoSource.OTHER]: <VideoIcon className="w-5 h-5 text-gray-600" />,
+  };
+  return iconMapping[source];
+};
 
 const getStatusColor = (status: VideoStatus) => {
   switch (status) {
@@ -75,6 +87,7 @@ export function VideoGrid({ videos, isLoading }: VideoGridProps) {
               }
             >
               <span className="flex items-center gap-2">
+                {getSourceIcon(tab.key as VideoSource)}
                 {tab.name}
                 <span className="text-xs font-normal text-gray-400">
                   ({tab.count})
@@ -93,29 +106,34 @@ export function VideoGrid({ videos, isLoading }: VideoGridProps) {
                       <CardHeader className="p-0">
                         <div className="relative aspect-video">
                           <img
-                            src={video.thumbnail_url || '/placeholder-video.png'}
+                            src={video.thumbnail_url || '/superdisco.jpg'}
                             alt={video.title}
-                            className="w-full h-full object-cover"
+                            className={`w-full h-full object-cover ${!video.thumbnail_url ? 'border-b border-gray-300' : ''}`}
                           />
-                          {video.duration > 0 && (
-                            <div className="absolute bottom-2 right-2 bg-black/75 text-white px-2 py-1 rounded text-xs">
-                              {formatDuration(video.duration)}
-                            </div>
-                          )}
+                          
                         </div>
                       </CardHeader>
                       <CardContent className="p-4">
-                        <CardTitle className="text-base font-medium line-clamp-2 mb-2">
+                        <CardTitle className="text-base font-medium line-clamp-2 mb-4">
                           {video.title || 'Untitled Video'}
                         </CardTitle>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <Badge variant="secondary" className="text-xs font-normal">
+                            <Badge variant={
+                              video.status === VideoStatus.COMPLETED ? "default" :
+                              video.status === VideoStatus.FAILED ? "destructive" :
+                              "warning"
+                            } className="text-xs font-normal">
                               {getStatusText(video.status as VideoStatus)}
                             </Badge>
                             <span className="text-xs text-gray-500">
                               {new Date(video.created_at).toLocaleDateString()}
                             </span>
+                            {video.duration > 0 && (
+                              <div className="absolute bottom-2 right-2 bg-black/75 text-white px-2 py-1 rounded text-xs">
+                                {formatDuration(video.duration)}
+                              </div>
+                            )}
                           </div>
                           {video.status !== VideoStatus.COMPLETED && 
                            video.status !== VideoStatus.FAILED && (

@@ -11,10 +11,12 @@ from src.config import settings
 from src.db.models.video import Video
 from src.db.models.segment import Segment
 from src.api.database import db  # Import the global db instance
+from src.api.services.embedding_service import EmbeddingService
 
 class SearchService:
-    def __init__(self, db_session: Session):
-        self.db_session = db_session
+    def __init__(self, db: Session):
+        self.db = db
+        self.embedding_service = EmbeddingService(db)
         self.client = Client(settings.meilisearch.host, settings.meilisearch.api_key)
         
         # Configure indices for basic search
@@ -127,7 +129,7 @@ class SearchService:
             
             # Convert embedding to pgvector type and update segment
             segment.embedding = embedding
-            self.db_session.commit()
+            self.db.commit()
             
             # Index in Meilisearch for keyword search
             segment_doc = {
@@ -154,93 +156,61 @@ class SearchService:
             logger.error(f"Failed to index segment {segment.id}: {e}")
             raise
 
-    def semantic_segment_search(
+    def search_segments(
         self,
         query: str,
-        filters: Optional[Dict[str, Any]] = None,
-        limit: int = 5
+        limit: int = 5,
+        threshold: float = 0.7
     ) -> List[Dict[str, Any]]:
-        """Search video segments using semantic search with pgvector."""
+        """Search for segments using semantic search."""
         try:
-            # Generate embedding for the search query
-            query_response = self.openai.embeddings.create(
-                model="text-embedding-3-small",
-                input=query,
-                encoding_format="float"
+            return self.embedding_service.search_similar_segments(
+                query=query,
+                limit=limit,
+                threshold=threshold
             )
-            query_embedding = query_response.data[0].embedding
-            
-            # Use the RPC function for similarity search
-            result = db.client.rpc(
-                'search_similar_segments',
-                {
-                    'query_embedding': query_embedding,
-                    'match_count': limit
-                }
-            ).execute()
-            
-            return result.data if result.data else []
-            
         except Exception as e:
-            logger.error(f"Failed to perform semantic segment search: {e}")
-            raise
+            logger.error(f"Failed to search segments: {e}")
+            return []
 
-    def hybrid_search(
+    def semantic_search(
         self,
         query: str,
-        filters: Optional[Dict[str, Any]] = None,
-        limit: int = 5
-    ) -> Dict[str, Any]:
-        """Perform hybrid search combining Meilisearch keyword and pgvector semantic search."""
+        limit: int = 5,
+        threshold: float = 0.7
+    ) -> List[Dict[str, Any]]:
+        """Semantic search for segments."""
+        return self.search_segments(query, limit, threshold)
+
+    def search_video_segments(
+        self,
+        video_id: int,
+        query: str,
+        limit: int = 5,
+        threshold: float = 0.7
+    ) -> List[Dict[str, Any]]:
+        """Search for segments within a specific video."""
         try:
-            # Perform both searches
-            keyword_results = self.search_videos(query, filters, limit)
-            semantic_results = self.semantic_segment_search(query, filters, limit)
+            # Get all similar segments
+            segments = self.search_segments(query, limit=limit * 2, threshold=threshold)
             
-            # Process and combine results
-            processed_results = {
-                "keyword_matches": [
-                    {
-                        **hit,
-                        "score": hit.get("_rankingScore", 0.0),
-                        "highlights": hit.get("_formatted", {}),
-                        "matches": hit.get("_matchesPosition", {}),
-                        "search_type": "keyword"
-                    } for hit in keyword_results
-                ],
-                "semantic_matches": [
-                    {
-                        "id": str(result["id"]),
-                        "video_id": str(result["video_id"]),
-                        "text": result["text"],
-                        "start_time": float(result["start_time"]),
-                        "end_time": float(result["end_time"]),
-                        "speaker_id": result["speaker_id"],
-                        "similarity": float(result["similarity"]),
-                        "metadata": result.get("metadata", {}),
-                        "search_type": "semantic"
-                    } for result in semantic_results
-                ]
-            }
+            # Filter for the specific video and respect the original limit
+            video_segments = [
+                segment for segment in segments
+                if segment["video_id"] == video_id
+            ][:limit]
             
-            # Add result statistics
-            processed_results["stats"] = {
-                "keyword_count": len(keyword_results),
-                "semantic_count": len(semantic_results),
-                "total_count": len(keyword_results) + len(semantic_results)
-            }
-            
-            return processed_results
+            return video_segments
             
         except Exception as e:
-            logger.error(f"Failed to perform hybrid search: {e}")
-            raise
+            logger.error(f"Failed to search video segments: {e}")
+            return []
 
     async def reindex_all(self):
         """Reindex all videos and segments in Meilisearch."""
         try:
             # Get all videos
-            videos = self.db_session.query(Video).all()
+            videos = self.db.query(Video).all()
             
             # Prepare video documents
             video_docs = []

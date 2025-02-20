@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Dict, Any
 from datetime import datetime
 from sqlalchemy.orm import Session
 from loguru import logger
@@ -7,18 +7,19 @@ import os
 import uuid
 import asyncio
 
-from src.db.models import Video
+from src.db.models.video import Video
 from src.pipeline.types import VideoSource, VideoStatus
 from src.api.core.storage import StorageService
 from src.api.core.deepgram import DeepgramService
 from src.api.core.openai import OpenAIService
 from src.pipeline.video_processor import VideoProcessor
 from src.pipeline.video.downloader import VideoDownloader
+from src.api.database import db
 
 class VideoService:
-    def __init__(self, db: Session):
+    def __init__(self, db_session: Session):
         """Initialize video service."""
-        self.db = db
+        self.db = db_session
         self.storage = StorageService()
         self.deepgram = DeepgramService()
         self.openai = OpenAIService()
@@ -41,6 +42,7 @@ class VideoService:
         thumbnail_url: Optional[str] = None,
         status: VideoStatus = VideoStatus.PENDING,
         duration: Optional[int] = None,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> Video:
         """Create a new video entry."""
         try:
@@ -58,7 +60,8 @@ class VideoService:
                 status=status,
                 duration=duration,
                 progress=0.0,
-                steps_completed=[]
+                steps_completed=[],
+                extra_data=metadata or {}
             )
             
             # Save to database
@@ -76,7 +79,7 @@ class VideoService:
 
     def update_video_progress(
         self,
-        video_id: int,
+        video_id: str,
         status: VideoStatus,
         progress: float,
         step: str,
@@ -104,36 +107,88 @@ class VideoService:
             self.db.rollback()
             raise
 
-    async def process_video(self, video_id: int) -> bool:
+    async def process_video(self, video_id: str) -> bool:
         """Process a video through the pipeline."""
         try:
             processor = VideoProcessor()
             success = await processor.process_video(video_id)
+            
+            if success:
+                # Clean up storage files after successful processing
+                cleanup_success = self.storage.cleanup_files(video_id)
+                if not cleanup_success:
+                    logger.warning(f"Failed to cleanup storage files for video {video_id}")
+                
             return success
         except Exception as e:
             logger.error(f"Failed to process video {video_id}: {e}")
             return False
 
-    def get_video(self, video_id: int) -> Optional[Video]:
-        """Get a video by ID."""
-        return self.db.query(Video).filter(Video.id == video_id).first()
-
-    def list_videos(self, skip: int = 0, limit: int = 100) -> List[Video]:
-        """List all videos with pagination."""
-        return self.db.query(Video).offset(skip).limit(limit).all()
-
-    def delete_video(self, video_id: int) -> bool:
-        """Delete a video."""
+    def get_video(self, video_id: str) -> Optional[Dict[str, Any]]:
+        """Get a video by ID with all its data."""
         try:
-            video = self.get_video(video_id)
-            if not video:
-                return False
+            # Get video from Supabase
+            result = db.supabase.table("videos").select("*").eq("id", video_id).execute()
+            if not result.data:
+                return None
+                
+            video_data = result.data[0]
             
-            self.db.delete(video)
-            self.db.commit()
-            return True
+            # Get segments count
+            segments_result = db.supabase.table("segments").select("count").eq("video_id", video_id).execute()
+            video_data['segments_count'] = segments_result.count if segments_result.count is not None else 0
+            
+            return video_data
+            
+        except Exception as e:
+            logger.error(f"Failed to get video {video_id}: {e}")
+            raise
+
+    def get_video_segments(self, video_id: str) -> List[Dict[str, Any]]:
+        """Get all segments for a video."""
+        try:
+            result = db.supabase.table("segments") \
+                .select("*") \
+                .eq("video_id", video_id) \
+                .is_("deleted_at", "null") \
+                .order("start_time") \
+                .execute()
+                
+            return result.data if result.data else []
+            
+        except Exception as e:
+            logger.error(f"Failed to get segments for video {video_id}: {e}")
+            raise
+
+    def list_videos(self, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
+        """List all videos with pagination."""
+        try:
+            result = db.supabase.table("videos") \
+                .select("*") \
+                .order("created_at", desc=True) \
+                .range(skip, skip + limit) \
+                .execute()
+                
+            return result.data if result.data else []
+            
+        except Exception as e:
+            logger.error(f"Failed to list videos: {e}")
+            raise
+
+    def delete_video(self, video_id: str) -> bool:
+        """Delete a video and its associated data."""
+        try:
+            # Delete segments
+            db.supabase.table("segments").delete().eq("video_id", video_id).execute()
+            
+            # Delete transcriptions
+            db.supabase.table("transcriptions").delete().eq("video_id", video_id).execute()
+            
+            # Delete video
+            result = db.supabase.table("videos").delete().eq("id", video_id).execute()
+            
+            return bool(result.data)
             
         except Exception as e:
             logger.error(f"Failed to delete video: {e}")
-            self.db.rollback()
             return False 

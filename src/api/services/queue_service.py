@@ -2,8 +2,9 @@ from datetime import datetime, timedelta
 import uuid
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, asc
+from sqlalchemy import desc, asc, cast, String
 from loguru import logger
+import asyncio
 
 from src.db.models.queue import QueueItem, QueueStatus
 from src.api.services.video_service import VideoService
@@ -51,7 +52,7 @@ class QueueService:
             # First try to get the next item from an existing bulk operation
             bulk_item = self.db.query(QueueItem)\
                 .filter(QueueItem.status == QueueStatus.PENDING)\
-                .filter(QueueItem.queue_metadata['is_bulk'].astext == 'true')\
+                .filter(cast(QueueItem.queue_metadata['is_bulk'], String) == 'true')\
                 .order_by(desc(QueueItem.priority), asc(QueueItem.created_at))\
                 .first()
             
@@ -61,7 +62,7 @@ class QueueService:
             # If no bulk items, get the next single item
             return self.db.query(QueueItem)\
                 .filter(QueueItem.status == QueueStatus.PENDING)\
-                .filter(QueueItem.queue_metadata['is_bulk'].astext == 'false')\
+                .filter(cast(QueueItem.queue_metadata['is_bulk'], String) == 'false')\
                 .order_by(desc(QueueItem.priority), asc(QueueItem.created_at))\
                 .first()
         except Exception as e:
@@ -92,8 +93,13 @@ class QueueService:
             item.video_id = str(video.id)
             self.db.commit()
 
-            # Start processing
-            self.video_processor.process_video(video.id)
+            # Start processing in background using a new event loop
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                loop.run_until_complete(self.video_service.process_video(video.id))
+            finally:
+                loop.close()
 
             # Update queue item
             item.status = QueueStatus.COMPLETED
@@ -148,7 +154,7 @@ class QueueService:
                 query = query.filter(QueueItem.status != QueueStatus.COMPLETED)
                 
             if is_bulk is not None:
-                query = query.filter(QueueItem.queue_metadata['is_bulk'].astext == str(is_bulk).lower())
+                query = query.filter(cast(QueueItem.queue_metadata['is_bulk'], String) == str(is_bulk).lower())
                 
             return query.order_by(desc(QueueItem.priority), desc(QueueItem.created_at))\
                 .offset(skip)\

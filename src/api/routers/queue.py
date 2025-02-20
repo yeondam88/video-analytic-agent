@@ -54,7 +54,8 @@ async def add_to_queue(
         )
         
         # Start processing in background
-        background_tasks.add_task(process_queue, db)
+        for item in items:
+            background_tasks.add_task(service.process_next)
         
         return [QueueItemResponse(**item.to_dict()) for item in items]
     except Exception as e:

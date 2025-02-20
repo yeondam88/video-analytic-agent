@@ -30,6 +30,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const seekTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isSeekingRef = useRef<boolean>(false);
   const lastReportedTimeRef = useRef<number>(0);
+  const seekAttempts = useRef<number>(0);
+  const MAX_SEEK_ATTEMPTS = 3;
   
   // Memoize video ID extraction to prevent infinite re-renders
   const { videoId, isYouTube, isLoom } = useMemo(() => {
@@ -343,59 +345,59 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setError(errorMessage);
   };
 
-  // Handle seeking
-  useEffect(() => {
-    if (isReady && currentTime !== lastSeekTime.current && Math.abs(currentTime - lastReportedTimeRef.current) > 1) {
-      try {
-        lastSeekTime.current = currentTime;
-        if (isYouTube && player) {
-          logger.info(`Seeking YouTube player to ${currentTime}s`);
-          isSeekingRef.current = true;
-          if (seekTimeoutRef.current) {
-            clearTimeout(seekTimeoutRef.current);
-          }
-          seekTimeoutRef.current = setTimeout(() => {
-            try {
-              player.seekTo(currentTime, true);
-              if (isPlaying) {
-                player.playVideo();
-              }
-              logger.info(`Successfully seeked to ${currentTime}s`);
-              isSeekingRef.current = false;
-            } catch (error) {
-              logger.error(`Failed to seek and play: ${error}`);
-              setError(`Failed to seek to ${currentTime}s: ${error}`);
-              isSeekingRef.current = false;
-            }
-          }, 200);
-        } else if (isLoom && window.loomPlayer) {
-          logger.info(`Seeking Loom player to ${currentTime}s`);
-          isSeekingRef.current = true;
-          if (seekTimeoutRef.current) {
-            clearTimeout(seekTimeoutRef.current);
-          }
-          seekTimeoutRef.current = setTimeout(() => {
-            try {
-              window.loomPlayer.seekTo(currentTime);
-              if (isPlaying) {
-                window.loomPlayer.play();
-              }
-              logger.info(`Successfully seeked Loom player to ${currentTime}s`);
-              isSeekingRef.current = false;
-            } catch (error) {
-              logger.error(`Failed to seek Loom player: ${error}`);
-              setError(`Failed to seek to ${currentTime}s: ${error}`);
-              isSeekingRef.current = false;
-            }
-          }, 200);
+  // Handle seeking with retry logic
+  const performSeek = async (targetTime: number, shouldPlay: boolean = true) => {
+    if (seekAttempts.current >= MAX_SEEK_ATTEMPTS) {
+      logger.warn(`Max seek attempts (${MAX_SEEK_ATTEMPTS}) reached for time ${targetTime}s`);
+      seekAttempts.current = 0;
+      return;
+    }
+
+    try {
+      isSeekingRef.current = true;
+      logger.info(`Attempting to seek to ${targetTime}s (attempt ${seekAttempts.current + 1}/${MAX_SEEK_ATTEMPTS})`);
+
+      if (isYouTube && player) {
+        player.seekTo(targetTime, true);
+        if (shouldPlay) {
+          player.playVideo();
         }
-      } catch (error) {
-        logger.error(`Failed to seek to time ${currentTime}: ${error}`);
-        setError(`Failed to seek to ${currentTime}s: ${error}`);
-        isSeekingRef.current = false;
+      } else if (isLoom && window.loomPlayer) {
+        await window.loomPlayer.seekTo(targetTime);
+        if (shouldPlay) {
+          await window.loomPlayer.play();
+        }
+      }
+
+      // Verify the seek was successful
+      setTimeout(async () => {
+        const actualTime = isYouTube ? player.getCurrentTime() : await window.loomPlayer?.getCurrentTime();
+        if (Math.abs(actualTime - targetTime) > 1) {
+          logger.warn(`Seek verification failed. Target: ${targetTime}s, Actual: ${actualTime}s`);
+          seekAttempts.current++;
+          performSeek(targetTime, shouldPlay);
+        } else {
+          logger.info(`Successfully seeked to ${targetTime}s`);
+          seekAttempts.current = 0;
+          isSeekingRef.current = false;
+        }
+      }, 500);
+    } catch (error) {
+      logger.error(`Seek error: ${error}`);
+      seekAttempts.current++;
+      if (seekAttempts.current < MAX_SEEK_ATTEMPTS) {
+        setTimeout(() => performSeek(targetTime, shouldPlay), 1000);
       }
     }
-  }, [currentTime, isReady, player, isYouTube, isLoom, isPlaying]);
+  };
+
+  // Handle seeking when currentTime changes
+  useEffect(() => {
+    if (isReady && currentTime !== lastSeekTime.current && Math.abs(currentTime - lastReportedTimeRef.current) > 1) {
+      lastSeekTime.current = currentTime;
+      performSeek(currentTime, isPlaying);
+    }
+  }, [currentTime, isReady, isPlaying]);
 
   // Cleanup on unmount
   useEffect(() => {

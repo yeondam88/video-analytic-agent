@@ -1,7 +1,7 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Navigation } from './components/Navigation'
+import { Layout } from './components/Layout'
 import { HomePage } from './pages/HomePage'
 import { SearchPage } from './pages/SearchPage'
 import { VideoDetailPage } from './pages/VideoDetailPage'
@@ -22,18 +22,14 @@ export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <div className="min-h-screen bg-background font-sans antialiased">
-          <Navigation />
-          <main className="container mx-auto py-6">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/videos/:videoId" element={<VideoDetailPage />} />
-              <Route path="/chat" element={<ChatPage />} />
-              <Route path="/process" element={<VideoProcessingPage />} />
-            </Routes>
-          </main>
-        </div>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/chat" element={<ChatPage />} />
+            {/* <Route path="/search" element={<SearchPage />} /> */}
+            <Route path="/videos/:videoId" element={<VideoDetailPage />} />
+          </Routes>
+        </Layout>
       </BrowserRouter>
     </QueryClientProvider>
   )

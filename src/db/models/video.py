@@ -46,6 +46,7 @@ class Video(BaseModel):
     segments = relationship("Segment", back_populates="video", cascade="all, delete-orphan")
     summaries = relationship("Summary", back_populates="video", cascade="all, delete-orphan")
     transcription = relationship("Transcription", back_populates="video", uselist=False, cascade="all, delete-orphan")
+    queue_item = relationship("QueueItem", back_populates="video", uselist=False)
 
     def __repr__(self) -> str:
         """Return string representation."""

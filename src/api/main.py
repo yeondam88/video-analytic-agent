@@ -6,6 +6,10 @@ from loguru import logger
 from src.api.database import get_db
 from src.api.routers import api_router
 from src.config import settings
+from src.config.logging import setup_logging
+
+# Configure logging
+setup_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

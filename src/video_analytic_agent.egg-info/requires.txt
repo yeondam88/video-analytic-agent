@@ -1,7 +1,0 @@
-sqlalchemy
-alembic
-pydantic
-pydantic-settings
-fastapi
-uvicorn
-python-dotenv

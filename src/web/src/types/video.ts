@@ -39,6 +39,8 @@ export interface Video {
   error?: string;
   thumbnail_url?: string;
   source?: VideoSource;
+  duration?: number;
+  extra_data?: Record<string, any>;
   metadata?: {
     summary?: string;
     key_points?: string[];
@@ -46,6 +48,25 @@ export interface Video {
     category?: string;
     duration?: number;
     thumbnail_url?: string;
+    speakers?: {
+      id: string;
+      name?: string;
+      duration: number;
+      word_count: number;
+      confidence?: number;
+    }[];
+    word_frequency?: {
+      word: string;
+      count: number;
+    }[];
+    sentiment?: {
+      overall: number;
+      segments: {
+        start_time: number;
+        end_time: number;
+        score: number;
+      }[];
+    };
   };
 }
 
@@ -74,6 +95,22 @@ export interface VideoSegment {
   speaker_id?: string;
   created_at: string;
   embedding?: number[];
+}
+
+export interface Segment {
+  id: string;
+  video_id: string;
+  speaker_id: string;
+  start_time: number;
+  end_time: number;
+  text: string;
+  display_text?: string;
+  metadata?: {
+    word_count?: number;
+    duration?: number;
+    has_summary?: boolean;
+    confidence?: number;
+  };
 }
 
 export type ProcessingStepType = {

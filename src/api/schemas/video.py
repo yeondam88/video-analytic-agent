@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, HttpUrl
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 from src.pipeline.types import VideoStatus
@@ -43,6 +43,9 @@ class VideoResponse(VideoInDB):
     error: Optional[str] = None
     progress: Optional[float] = Field(0.0, ge=0, le=100)
     steps_completed: List[str] = Field(default_factory=list)
+    source: Optional[str] = Field(None, description="Source of the video")
+    extra_data: Optional[Dict[str, Any]] = Field(None, description="Extra data about the video")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="Metadata about the video")
 
 class VideoList(BaseModel):
     """Schema for list of videos response."""

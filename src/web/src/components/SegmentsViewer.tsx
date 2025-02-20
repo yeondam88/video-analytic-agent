@@ -208,7 +208,7 @@ export const SegmentsViewer: React.FC<SegmentsViewerProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 p-4">
         <h2 className="text-xl font-semibold">Video Segments</h2>
         <span className="text-sm text-gray-500">{segments.length} segments found</span>
       </div>

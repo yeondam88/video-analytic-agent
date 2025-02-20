@@ -116,33 +116,24 @@ async def search_videos(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/segments", response_model=List[Dict[str, Any]])
-async def search_segments(
-    request: SearchRequest,
+@router.get("/segments")
+def search_segments(
+    query: str = Query(..., description="Search query"),
+    limit: int = Query(5, description="Maximum number of results to return"),
+    threshold: float = Query(0.7, description="Minimum similarity threshold"),
     db: Session = Depends(get_db)
 ) -> List[Dict[str, Any]]:
-    """Search video segments using semantic search."""
+    """Search for segments using semantic search."""
     try:
         search_service = SearchService(db)
-        filters = {}
-        
-        if request.filters:
-            if request.filters.source:
-                filters["video.source"] = request.filters.source
-            if request.filters.created_after:
-                filters["created_at > "] = request.filters.created_after
-            if request.filters.created_before:
-                filters["created_at < "] = request.filters.created_before
-        
-        results = await search_service.semantic_segment_search(
-            query=request.query,
-            filters=filters,
-            limit=request.limit
+        return search_service.search_segments(
+            query=query,
+            limit=limit,
+            threshold=threshold
         )
-        return results
-        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Failed to search segments: {e}")
+        return []
 
 @router.post("/hybrid", response_model=SearchResponse)
 def hybrid_search(
@@ -189,7 +180,7 @@ async def reindex_all(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/semantic", response_model=List[Dict[str, Any]])
-async def semantic_search(
+def semantic_search(
     query: str = Query(..., description="The search query text"),
     limit: int = Query(default=5, ge=1, le=20, description="Maximum number of results to return"),
     threshold: float = Query(default=0.7, ge=0, le=1, description="Minimum similarity threshold"),
@@ -210,7 +201,7 @@ async def semantic_search(
     """
     try:
         embedding_service = EmbeddingService(db)
-        results = await embedding_service.search_similar_segments(
+        results = embedding_service.search_similar_segments(
             query=query,
             limit=limit,
             threshold=threshold
@@ -223,44 +214,26 @@ async def semantic_search(
             detail=f"Failed to perform semantic search: {str(e)}"
         )
 
-@router.get("/segments/{video_id}", response_model=List[Dict[str, Any]])
-async def search_video_segments(
+@router.get("/videos/{video_id}/segments")
+def search_video_segments(
     video_id: int,
-    query: str = Query(..., description="The search query text"),
-    limit: int = Query(default=5, ge=1, le=20, description="Maximum number of results to return"),
-    threshold: float = Query(default=0.7, ge=0, le=1, description="Minimum similarity threshold"),
+    query: str = Query(..., description="Search query"),
+    limit: int = Query(5, description="Maximum number of results to return"),
+    threshold: float = Query(0.7, description="Minimum similarity threshold"),
     db: Session = Depends(get_db)
 ) -> List[Dict[str, Any]]:
-    """
-    Search for segments within a specific video using semantic similarity.
-    
-    Similar to semantic_search but limited to segments from a specific video.
-    """
+    """Search for segments within a specific video."""
     try:
-        # First verify the video exists
-        video = db.query(Video).filter(Video.id == video_id).first()
-        if not video:
-            raise HTTPException(status_code=404, detail="Video not found")
-            
-        embedding_service = EmbeddingService(db)
-        results = await embedding_service.search_similar_segments(
+        search_service = SearchService(db)
+        return search_service.search_video_segments(
+            video_id=video_id,
             query=query,
             limit=limit,
             threshold=threshold
         )
-        
-        # Filter results for the specific video
-        video_results = [r for r in results if r["video_id"] == video_id]
-        return video_results
-        
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"Failed to search video segments: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to search video segments: {str(e)}"
-        )
+        return []
 
 @router.get("/videos", response_model=List[Dict[str, Any]])
 async def search_videos_old(
