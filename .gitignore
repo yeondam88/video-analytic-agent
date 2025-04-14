@@ -6,3 +6,11 @@ __pycache__/
 node_modules/
 
 storage/
+
+# Large media files
+storage/videos/*.mp4
+storage/audio/*.wav
+
+# Keep empty directories
+!storage/videos/.gitkeep
+!storage/audio/.gitkeep
