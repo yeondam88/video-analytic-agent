@@ -59,5 +59,5 @@ class QueueItem(Base):
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
-            "video_id": self.video_id
+            "video_id": str(self.video_id) if self.video_id is not None else None
         } 

@@ -6,15 +6,19 @@ from sqlalchemy.orm import Session
 from loguru import logger
 
 from src.db.models import Video, Segment, Summary  # Updated import paths
-from ..config import settings
+from src.config import settings
 from src.pipeline.types import VideoStatus
 
 class SummaryService:
     def __init__(self, db: Session):
         self.db = db
-        openai.api_key = settings.services.OPENAI_API_KEY
-        if not openai.api_key:
-            raise ValueError("OPENAI_API_KEY environment variable is required")
+        self.api_key = settings.services.OPENAI_API_KEY
+        self.enabled = bool(self.api_key)
+        
+        if self.enabled:
+            openai.api_key = self.api_key
+        else:
+            logger.warning("Summary service is disabled: OPENAI_API_KEY environment variable is not set")
 
     def create_summary(
         self,
@@ -91,7 +95,18 @@ class SummaryService:
 
     async def generate_summary(self, video_id: int) -> Dict[str, Any]:
         """Generate a summary for a video."""
-        # TODO: Implement actual summary generation
+        if not self.enabled:
+            logger.warning("Summary generation skipped: OpenAI service is disabled")
+            return {
+                "id": "1",
+                "video_id": str(video_id),
+                "content": "Summary unavailable - OpenAI API key not configured",
+                "key_points": ["API key not configured"],
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat()
+            }
+            
+        # TODO: Implement actual summary generation with OpenAI
         return {
             "id": "1",
             "video_id": str(video_id),

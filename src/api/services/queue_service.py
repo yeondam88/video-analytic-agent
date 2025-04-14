@@ -90,7 +90,7 @@ class QueueService:
                     "bulk_size": item.queue_metadata.get("bulk_size", 1)
                 }
             )
-            item.video_id = str(video.id)
+            item.video_id = video.id
             self.db.commit()
 
             # Start processing in background using a new event loop

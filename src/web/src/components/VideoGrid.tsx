@@ -6,8 +6,14 @@ import { Progress } from '@/components/ui/progress'
 import { Video, VideoStatus, VideoSource } from '@/types/video'
 import { Tab } from '@headlessui/react'
 import { cn } from '@/lib/utils'
-import { Youtube } from 'lucide-react'
+import { Youtube, Trash2, MoreVertical } from 'lucide-react'
 import { VideoIcon } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface VideoGridProps {
   videos: Array<{
@@ -22,6 +28,7 @@ interface VideoGridProps {
     error?: string;
   }>;
   isLoading?: boolean;
+  onDeleteVideo?: (videoId: string) => void;
 }
 
 const getSourceIcon = (source: VideoSource) => {
@@ -51,7 +58,7 @@ const getStatusText = (status: VideoStatus): string => {
   return status.charAt(0) + status.slice(1).toLowerCase().replace(/_/g, ' ')
 }
 
-export function VideoGrid({ videos, isLoading }: VideoGridProps) {
+export function VideoGrid({ videos, isLoading, onDeleteVideo }: VideoGridProps) {
   const [selectedTab, setSelectedTab] = useState(0)
   
   // Group videos by source
@@ -66,6 +73,14 @@ export function VideoGrid({ videos, isLoading }: VideoGridProps) {
     { name: 'YouTube Videos', key: 'YOUTUBE', count: videosBySource.YOUTUBE.length },
     { name: 'Loom Videos', key: 'LOOM', count: videosBySource.LOOM.length },
   ]
+
+  const handleDelete = (e: React.MouseEvent, videoId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDeleteVideo && window.confirm('Are you sure you want to delete this video?')) {
+      onDeleteVideo(videoId);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -102,7 +117,7 @@ export function VideoGrid({ videos, isLoading }: VideoGridProps) {
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {videosBySource[tab.key as keyof typeof videosBySource].map((video) => (
                   <Link key={video.id} to={`/videos/${video.id}`}>
-                    <Card className="overflow-hidden transition-all hover:shadow-lg">
+                    <Card className="overflow-hidden transition-all hover:shadow-lg group relative">
                       <CardHeader className="p-0">
                         <div className="relative aspect-video">
                           <img
@@ -114,9 +129,32 @@ export function VideoGrid({ videos, isLoading }: VideoGridProps) {
                         </div>
                       </CardHeader>
                       <CardContent className="p-4">
-                        <CardTitle className="text-base font-medium line-clamp-2 mb-4">
-                          {video.title || 'Untitled Video'}
-                        </CardTitle>
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base font-medium line-clamp-2 mb-4 flex-1">
+                            {video.title || 'Untitled Video'}
+                          </CardTitle>
+                          
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button 
+                                className="text-gray-400 hover:text-gray-700 focus:outline-none" 
+                                onClick={(e) => e.preventDefault()}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem 
+                                className="text-red-600 cursor-pointer flex items-center gap-2"
+                                onClick={(e) => handleDelete(e, video.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <Badge variant={

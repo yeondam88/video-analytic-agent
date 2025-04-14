@@ -191,3 +191,280 @@
 2025-02-20 10:03:54 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 169 - processing_completed - VideoStatus.COMPLETED (100%)
 2025-02-20 10:03:54 | INFO     | src.pipeline.video_processor:process_video:32 - Successfully processed video 169
 2025-02-20 10:03:54 | INFO     | src.api.services.video_service:process_video:118 - Video 169 processed successfully, starting cleanup
+2025-04-13 21:04:30 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:04:30 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:04:30 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:08:05 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:08:06 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:08:06 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:08:06 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:18:13 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:18:13 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:18:13 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:22:18 | INFO     | src.api.services.queue_service:add_to_queue:42 - Added 1 items to queue (bulk=False)
+2025-04-13 21:22:18 | INFO     | src.api.services.video_service:create_video:87 - Created video entry: 196
+2025-04-13 21:22:18 | INFO     | src.api.services.video_service:process_video:128 - Starting video processing for video 196
+2025-04-13 21:22:18 | INFO     | src.pipeline.video_processor:process_video:28 - Starting video processing for video 196
+2025-04-13 21:22:18 | INFO     | src.pipeline.coordinator:process_video:36 - Processing video 196 (dQw4w9WgXcQ)
+2025-04-13 21:22:18 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 196 - download_started - VideoStatus.PROCESSING (5.0%)
+2025-04-13 21:22:18 | INFO     | src.pipeline.video.downloader:_download_youtube:152 - Downloading YouTube video dQw4w9WgXcQ
+2025-04-13 21:22:20 | INFO     | src.pipeline.video.downloader:_download_youtube:181 - Starting download of dQw4w9WgXcQ
+2025-04-13 21:22:33 | INFO     | src.pipeline.video.downloader:_download_youtube:187 - Successfully downloaded video to storage/videos/dQw4w9WgXcQ.mp4
+2025-04-13 21:22:33 | INFO     | src.pipeline.video.downloader:download_video:134 - Successfully downloaded video dQw4w9WgXcQ
+2025-04-13 21:22:33 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 196 - download_completed - VideoStatus.PROCESSING (5.0%)
+2025-04-13 21:22:33 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 196 - extract_audio_started - VideoStatus.PROCESSING (21.666666666666664%)
+2025-04-13 21:22:33 | INFO     | src.pipeline.audio.extractor:extract_audio:39 - Extracting audio from video dQw4w9WgXcQ
+2025-04-13 21:22:33 | INFO     | src.pipeline.audio.extractor:extract_audio:57 - Successfully extracted audio to storage/audio/dQw4w9WgXcQ.wav
+2025-04-13 21:22:33 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 196 - extract_audio_completed - VideoStatus.PROCESSING (21.666666666666664%)
+2025-04-13 21:22:33 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 196 - transcribe_started - VideoStatus.PROCESSING (45.0%)
+2025-04-13 21:22:33 | INFO     | src.pipeline.transcription.transcriber:transcribe:190 - Attempt 1 to transcribe video 196 using model 'base'
+2025-04-13 21:22:33 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:79 - Audio file size: 6.47 MB
+2025-04-13 21:22:33 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:84 - Sending request to Deepgram for storage/audio/dQw4w9WgXcQ.wav
+2025-04-13 21:22:33 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:85 - Request parameters: {'model': 'nova-2', 'smart_format': 'true', 'punctuate': 'true', 'diarize': 'true', 'utterances': 'true', 'detect_language': 'true'}
+2025-04-13 21:22:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:108 - Successful response from Deepgram. Response structure:
+2025-04-13 21:22:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:109 - - Has results: True
+2025-04-13 21:22:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:114 - - Detected language: None
+2025-04-13 21:22:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:117 - - Number of channels: 1
+2025-04-13 21:22:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:120 - - Number of alternatives: 1
+2025-04-13 21:22:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:123 - - Has transcript: False
+2025-04-13 21:22:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:124 - - Transcript length: 0
+2025-04-13 21:22:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:125 - - First 100 chars: 
+2025-04-13 21:22:41 | ERROR    | src.pipeline.transcription.transcriber:transcribe:206 - Empty transcript received from Deepgram
+2025-04-13 21:22:43 | INFO     | src.pipeline.transcription.transcriber:transcribe:190 - Attempt 2 to transcribe video 196 using model 'base'
+2025-04-13 21:22:43 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:79 - Audio file size: 6.47 MB
+2025-04-13 21:22:43 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:84 - Sending request to Deepgram for storage/audio/dQw4w9WgXcQ.wav
+2025-04-13 21:22:43 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:85 - Request parameters: {'model': 'nova-2', 'smart_format': 'true', 'punctuate': 'true', 'diarize': 'true', 'utterances': 'true', 'detect_language': 'true'}
+2025-04-13 21:22:52 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:108 - Successful response from Deepgram. Response structure:
+2025-04-13 21:22:52 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:109 - - Has results: True
+2025-04-13 21:22:52 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:114 - - Detected language: None
+2025-04-13 21:22:52 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:117 - - Number of channels: 1
+2025-04-13 21:22:52 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:120 - - Number of alternatives: 1
+2025-04-13 21:22:52 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:123 - - Has transcript: False
+2025-04-13 21:22:52 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:124 - - Transcript length: 0
+2025-04-13 21:22:52 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:125 - - First 100 chars: 
+2025-04-13 21:22:52 | ERROR    | src.pipeline.transcription.transcriber:transcribe:206 - Empty transcript received from Deepgram
+2025-04-13 21:22:56 | INFO     | src.pipeline.transcription.transcriber:transcribe:190 - Attempt 3 to transcribe video 196 using model 'base'
+2025-04-13 21:22:56 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:79 - Audio file size: 6.47 MB
+2025-04-13 21:22:56 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:84 - Sending request to Deepgram for storage/audio/dQw4w9WgXcQ.wav
+2025-04-13 21:22:56 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:85 - Request parameters: {'model': 'nova-2', 'smart_format': 'true', 'punctuate': 'true', 'diarize': 'true', 'utterances': 'true', 'detect_language': 'true'}
+2025-04-13 21:23:06 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:108 - Successful response from Deepgram. Response structure:
+2025-04-13 21:23:06 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:109 - - Has results: True
+2025-04-13 21:23:06 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:114 - - Detected language: None
+2025-04-13 21:23:06 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:117 - - Number of channels: 1
+2025-04-13 21:23:06 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:120 - - Number of alternatives: 1
+2025-04-13 21:23:06 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:123 - - Has transcript: False
+2025-04-13 21:23:06 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:124 - - Transcript length: 0
+2025-04-13 21:23:06 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:125 - - First 100 chars: 
+2025-04-13 21:23:06 | ERROR    | src.pipeline.transcription.transcriber:transcribe:206 - Empty transcript received from Deepgram
+2025-04-13 21:23:06 | ERROR    | src.pipeline.transcription.transcriber:transcribe:217 - Failed to get valid transcript after 3 attempts
+2025-04-13 21:23:06 | ERROR    | src.pipeline.coordinator:_execute_step:153 - transcribe step failed without error
+2025-04-13 21:23:06 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 196 - transcribe_failed - VideoStatus.FAILED (45.0%)
+2025-04-13 21:23:06 | ERROR    | src.pipeline.video_processor:process_video:37 - Failed to process video 196
+2025-04-13 21:23:10 | ERROR    | src.api.routers.queue:get_queue_items:109 - Failed to get queue items: 1 validation error for QueueItemResponse
+video_id
+  Input should be a valid string [type=string_type, input_value=183, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+2025-04-13 21:25:48 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:25:49 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:25:49 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:25:49 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:26:06 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:26:06 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:26:06 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:26:06 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:26:35 | INFO     | src.api.services.queue_service:add_to_queue:42 - Added 1 items to queue (bulk=False)
+2025-04-13 21:26:35 | INFO     | src.api.services.video_service:create_video:87 - Created video entry: 197
+2025-04-13 21:26:35 | INFO     | src.api.services.video_service:process_video:128 - Starting video processing for video 197
+2025-04-13 21:26:35 | INFO     | src.pipeline.video_processor:process_video:28 - Starting video processing for video 197
+2025-04-13 21:26:35 | INFO     | src.pipeline.coordinator:process_video:36 - Processing video 197 (jNQXAC9IVRw)
+2025-04-13 21:26:35 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 197 - download_started - VideoStatus.PROCESSING (5.0%)
+2025-04-13 21:26:35 | INFO     | src.pipeline.video.downloader:_download_youtube:152 - Downloading YouTube video jNQXAC9IVRw
+2025-04-13 21:26:37 | INFO     | src.pipeline.video.downloader:_download_youtube:181 - Starting download of jNQXAC9IVRw
+2025-04-13 21:26:40 | INFO     | src.pipeline.video.downloader:_download_youtube:187 - Successfully downloaded video to storage/videos/jNQXAC9IVRw.mp4
+2025-04-13 21:26:40 | INFO     | src.pipeline.video.downloader:download_video:134 - Successfully downloaded video jNQXAC9IVRw
+2025-04-13 21:26:40 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 197 - download_completed - VideoStatus.PROCESSING (5.0%)
+2025-04-13 21:26:40 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 197 - extract_audio_started - VideoStatus.PROCESSING (21.666666666666664%)
+2025-04-13 21:26:40 | INFO     | src.pipeline.audio.extractor:extract_audio:39 - Extracting audio from video jNQXAC9IVRw
+2025-04-13 21:26:40 | INFO     | src.pipeline.audio.extractor:extract_audio:57 - Successfully extracted audio to storage/audio/jNQXAC9IVRw.wav
+2025-04-13 21:26:40 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 197 - extract_audio_completed - VideoStatus.PROCESSING (21.666666666666664%)
+2025-04-13 21:26:40 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 197 - transcribe_started - VideoStatus.PROCESSING (45.0%)
+2025-04-13 21:26:40 | INFO     | src.pipeline.transcription.transcriber:transcribe:190 - Attempt 1 to transcribe video 197 using model 'base'
+2025-04-13 21:26:40 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:79 - Audio file size: 0.58 MB
+2025-04-13 21:26:40 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:84 - Sending request to Deepgram for storage/audio/jNQXAC9IVRw.wav
+2025-04-13 21:26:40 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:85 - Request parameters: {'model': 'nova-2', 'smart_format': 'true', 'punctuate': 'true', 'diarize': 'true', 'utterances': 'true', 'detect_language': 'true'}
+2025-04-13 21:26:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:108 - Successful response from Deepgram. Response structure:
+2025-04-13 21:26:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:109 - - Has results: True
+2025-04-13 21:26:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:114 - - Detected language: None
+2025-04-13 21:26:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:117 - - Number of channels: 1
+2025-04-13 21:26:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:120 - - Number of alternatives: 1
+2025-04-13 21:26:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:123 - - Has transcript: True
+2025-04-13 21:26:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:124 - - Transcript length: 210
+2025-04-13 21:26:41 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:125 - - First 100 chars: Alright. So here we are in front of the, elephants. Cool thing about these guys is that is that they
+2025-04-13 21:26:41 | INFO     | src.pipeline.transcription.transcriber:_save_transcription:171 - Saved transcription for video 197 (language: unknown)
+2025-04-13 21:26:41 | INFO     | src.pipeline.transcription.transcriber:transcribe:214 - Successfully transcribed video 197 (confidence: 0.9907114)
+2025-04-13 21:26:41 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 197 - transcribe_completed - VideoStatus.PROCESSING (45.0%)
+2025-04-13 21:26:41 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 197 - segment_started - VideoStatus.PROCESSING (76.66666666666667%)
+2025-04-13 21:26:41 | INFO     | src.pipeline.coordinator:_segment_video:229 - Starting segmentation for video 197
+2025-04-13 21:26:41 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 197 - segmentation_started - VideoStatus.SEGMENTING (76.66666666666667%)
+2025-04-13 21:26:44 | INFO     | src.pipeline.segmentation.processor:_save_segments:399 - Attempting to save 4 segments to database
+2025-04-13 21:26:44 | INFO     | src.pipeline.segmentation.processor:_save_segments:410 - Successfully saved 4 segments
+2025-04-13 21:26:44 | INFO     | src.pipeline.segmentation.processor:process_transcript:132 - Saved 4 segments for video 197
+2025-04-13 21:26:47 | INFO     | src.pipeline.segmentation.processor:_generate_video_summary:356 - Generated video summary with 3 key points
+2025-04-13 21:26:47 | INFO     | src.pipeline.segmentation.processor:_update_video_summary:572 - Updated summary and insights for video 197
+2025-04-13 21:26:47 | INFO     | src.pipeline.segmentation.processor:process_transcript:139 - Updated video 197 with summary
+2025-04-13 21:26:47 | INFO     | src.pipeline.coordinator:_segment_video:246 - Created 4 segments for video 197
+2025-04-13 21:26:47 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 197 - segmentation_completed - VideoStatus.PROCESSING (100.0%)
+2025-04-13 21:26:47 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 197 - segment_completed - VideoStatus.PROCESSING (76.66666666666667%)
+2025-04-13 21:26:47 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 197 - processing_completed - VideoStatus.COMPLETED (100%)
+2025-04-13 21:26:47 | INFO     | src.pipeline.video_processor:process_video:32 - Successfully processed video 197
+2025-04-13 21:26:47 | INFO     | src.api.services.video_service:process_video:134 - Video 197 processed successfully, starting cleanup
+2025-04-13 21:30:34 | INFO     | src.api.services.queue_service:add_to_queue:42 - Added 1 items to queue (bulk=False)
+2025-04-13 21:30:34 | INFO     | src.api.services.video_service:create_video:87 - Created video entry: 198
+2025-04-13 21:30:34 | INFO     | src.api.services.video_service:process_video:128 - Starting video processing for video 198
+2025-04-13 21:30:34 | INFO     | src.pipeline.video_processor:process_video:28 - Starting video processing for video 198
+2025-04-13 21:30:34 | INFO     | src.pipeline.coordinator:process_video:36 - Processing video 198 (T-D1OfcDW1M)
+2025-04-13 21:30:34 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 198 - download_started - VideoStatus.PROCESSING (5.0%)
+2025-04-13 21:30:34 | INFO     | src.pipeline.video.downloader:_download_youtube:152 - Downloading YouTube video T-D1OfcDW1M
+2025-04-13 21:30:36 | INFO     | src.pipeline.video.downloader:_download_youtube:181 - Starting download of T-D1OfcDW1M
+2025-04-13 21:31:00 | INFO     | src.pipeline.video.downloader:_download_youtube:187 - Successfully downloaded video to storage/videos/T-D1OfcDW1M.mp4
+2025-04-13 21:31:00 | INFO     | src.pipeline.video.downloader:download_video:134 - Successfully downloaded video T-D1OfcDW1M
+2025-04-13 21:31:00 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 198 - download_completed - VideoStatus.PROCESSING (5.0%)
+2025-04-13 21:31:00 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 198 - extract_audio_started - VideoStatus.PROCESSING (21.666666666666664%)
+2025-04-13 21:31:00 | INFO     | src.pipeline.audio.extractor:extract_audio:39 - Extracting audio from video T-D1OfcDW1M
+2025-04-13 21:31:01 | INFO     | src.pipeline.audio.extractor:extract_audio:57 - Successfully extracted audio to storage/audio/T-D1OfcDW1M.wav
+2025-04-13 21:31:01 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 198 - extract_audio_completed - VideoStatus.PROCESSING (21.666666666666664%)
+2025-04-13 21:31:01 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 198 - transcribe_started - VideoStatus.PROCESSING (45.0%)
+2025-04-13 21:31:01 | INFO     | src.pipeline.transcription.transcriber:transcribe:190 - Attempt 1 to transcribe video 198 using model 'base'
+2025-04-13 21:31:01 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:79 - Audio file size: 12.06 MB
+2025-04-13 21:31:01 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:84 - Sending request to Deepgram for storage/audio/T-D1OfcDW1M.wav
+2025-04-13 21:31:01 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:85 - Request parameters: {'model': 'nova-2', 'smart_format': 'true', 'punctuate': 'true', 'diarize': 'true', 'utterances': 'true', 'detect_language': 'true'}
+2025-04-13 21:31:09 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:108 - Successful response from Deepgram. Response structure:
+2025-04-13 21:31:09 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:109 - - Has results: True
+2025-04-13 21:31:09 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:114 - - Detected language: None
+2025-04-13 21:31:09 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:117 - - Number of channels: 1
+2025-04-13 21:31:09 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:120 - - Number of alternatives: 1
+2025-04-13 21:31:09 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:123 - - Has transcript: True
+2025-04-13 21:31:09 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:124 - - Transcript length: 5920
+2025-04-13 21:31:09 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:125 - - First 100 chars: Large language models. They are everywhere. They get some things amazingly right and other things ve
+2025-04-13 21:31:09 | INFO     | src.pipeline.transcription.transcriber:_save_transcription:171 - Saved transcription for video 198 (language: unknown)
+2025-04-13 21:31:09 | INFO     | src.pipeline.transcription.transcriber:transcribe:214 - Successfully transcribed video 198 (confidence: 0.99922216)
+2025-04-13 21:31:09 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 198 - transcribe_completed - VideoStatus.PROCESSING (45.0%)
+2025-04-13 21:31:09 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 198 - segment_started - VideoStatus.PROCESSING (76.66666666666667%)
+2025-04-13 21:31:09 | INFO     | src.pipeline.coordinator:_segment_video:229 - Starting segmentation for video 198
+2025-04-13 21:31:09 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 198 - segmentation_started - VideoStatus.SEGMENTING (76.66666666666667%)
+2025-04-13 21:31:19 | INFO     | src.pipeline.segmentation.processor:_save_segments:399 - Attempting to save 20 segments to database
+2025-04-13 21:31:19 | INFO     | src.pipeline.segmentation.processor:_save_segments:410 - Successfully saved 20 segments
+2025-04-13 21:31:19 | INFO     | src.pipeline.segmentation.processor:process_transcript:132 - Saved 20 segments for video 198
+2025-04-13 21:31:28 | INFO     | src.pipeline.segmentation.processor:_generate_video_summary:356 - Generated video summary with 5 key points
+2025-04-13 21:31:28 | INFO     | src.pipeline.segmentation.processor:_update_video_summary:572 - Updated summary and insights for video 198
+2025-04-13 21:31:28 | INFO     | src.pipeline.segmentation.processor:process_transcript:139 - Updated video 198 with summary
+2025-04-13 21:31:28 | INFO     | src.pipeline.coordinator:_segment_video:246 - Created 20 segments for video 198
+2025-04-13 21:31:28 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 198 - segmentation_completed - VideoStatus.PROCESSING (100.0%)
+2025-04-13 21:31:28 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 198 - segment_completed - VideoStatus.PROCESSING (76.66666666666667%)
+2025-04-13 21:31:28 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 198 - processing_completed - VideoStatus.COMPLETED (100%)
+2025-04-13 21:31:28 | INFO     | src.pipeline.video_processor:process_video:32 - Successfully processed video 198
+2025-04-13 21:31:28 | INFO     | src.api.services.video_service:process_video:134 - Video 198 processed successfully, starting cleanup
+2025-04-13 21:35:30 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:35:31 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:35:31 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:35:31 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:37:54 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:37:55 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:37:55 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:37:55 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:38:16 | INFO     | src.api.services.video_service:create_video:87 - Created video entry: 199
+2025-04-13 21:38:16 | ERROR    | src.api.services.queue_service:process_next:112 - Failed to process queue item b01f30a4-946e-438f-9c2d-b17f3efcfe80: Cannot run the event loop while another loop is running
+2025-04-13 21:40:31 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:40:32 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:40:32 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:40:32 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:40:55 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:40:56 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:40:56 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:40:56 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:41:15 | ERROR    | src.api.routers.queue:clear_failed_items:186 - Failed to clear failed items: Textual SQL expression 'UPDATE queue_items SET vi...' should be explicitly declared as text('UPDATE queue_items SET vi...')
+2025-04-13 21:41:27 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:41:28 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:41:28 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:41:28 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:41:57 | ERROR    | src.api.routers.queue:clear_failed_items:187 - Failed to clear failed items: name 'QueueItem' is not defined
+2025-04-13 21:42:06 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:42:07 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:42:07 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:42:07 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:42:07 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:42:07 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:42:07 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:42:07 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:42:32 | INFO     | src.api.services.video_service:create_video:87 - Created video entry: 200
+2025-04-13 21:42:32 | ERROR    | src.api.services.queue_service:process_next:112 - Failed to process queue item b01f30a4-946e-438f-9c2d-b17f3efcfe80: Cannot run the event loop while another loop is running
+2025-04-13 21:43:12 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:43:13 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:43:13 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:43:13 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:45:16 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:45:17 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:45:17 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:45:17 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:55:08 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:55:09 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:55:09 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:55:09 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:55:57 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:55:58 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:55:58 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:55:58 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:57:50 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:57:50 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:57:50 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:57:50 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 21:58:00 | INFO     | src.api.main:lifespan:28 - Shutting down Video Analytics API...
+2025-04-13 21:58:01 | INFO     | src.config.logging:setup_logging:39 - Logging configured successfully
+2025-04-13 21:58:01 | INFO     | src.api.config.settings.api:cors_origin_list:75 - Configured CORS origins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174']
+2025-04-13 21:58:01 | INFO     | src.api.main:lifespan:21 - Successfully connected to database
+2025-04-13 22:02:54 | INFO     | src.api.services.queue_service:add_to_queue:42 - Added 1 items to queue (bulk=False)
+2025-04-13 22:02:54 | INFO     | src.api.services.video_service:create_video:87 - Created video entry: 201
+2025-04-13 22:02:54 | INFO     | src.api.services.video_service:process_video:128 - Starting video processing for video 201
+2025-04-13 22:02:54 | INFO     | src.pipeline.video_processor:process_video:28 - Starting video processing for video 201
+2025-04-13 22:02:54 | INFO     | src.pipeline.coordinator:process_video:36 - Processing video 201 (T-D1OfcDW1M)
+2025-04-13 22:02:54 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 201 - download_started - VideoStatus.PROCESSING (5.0%)
+2025-04-13 22:02:54 | INFO     | src.pipeline.video.downloader:_download_youtube:152 - Downloading YouTube video T-D1OfcDW1M
+2025-04-13 22:02:57 | INFO     | src.pipeline.video.downloader:_download_youtube:181 - Starting download of T-D1OfcDW1M
+2025-04-13 22:03:19 | INFO     | src.pipeline.video.downloader:_download_youtube:187 - Successfully downloaded video to storage/videos/T-D1OfcDW1M.mp4
+2025-04-13 22:03:19 | INFO     | src.pipeline.video.downloader:download_video:134 - Successfully downloaded video T-D1OfcDW1M
+2025-04-13 22:03:19 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 201 - download_completed - VideoStatus.PROCESSING (5.0%)
+2025-04-13 22:03:19 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 201 - extract_audio_started - VideoStatus.PROCESSING (21.666666666666664%)
+2025-04-13 22:03:19 | INFO     | src.pipeline.audio.extractor:extract_audio:39 - Extracting audio from video T-D1OfcDW1M
+2025-04-13 22:03:19 | INFO     | src.pipeline.audio.extractor:extract_audio:57 - Successfully extracted audio to storage/audio/T-D1OfcDW1M.wav
+2025-04-13 22:03:19 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 201 - extract_audio_completed - VideoStatus.PROCESSING (21.666666666666664%)
+2025-04-13 22:03:19 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 201 - transcribe_started - VideoStatus.PROCESSING (45.0%)
+2025-04-13 22:03:19 | INFO     | src.pipeline.transcription.transcriber:transcribe:190 - Attempt 1 to transcribe video 201 using model 'base'
+2025-04-13 22:03:19 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:79 - Audio file size: 12.06 MB
+2025-04-13 22:03:19 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:84 - Sending request to Deepgram for storage/audio/T-D1OfcDW1M.wav
+2025-04-13 22:03:19 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:85 - Request parameters: {'model': 'nova-2', 'smart_format': 'true', 'punctuate': 'true', 'diarize': 'true', 'utterances': 'true', 'detect_language': 'true'}
+2025-04-13 22:03:34 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:108 - Successful response from Deepgram. Response structure:
+2025-04-13 22:03:34 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:109 - - Has results: True
+2025-04-13 22:03:34 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:114 - - Detected language: None
+2025-04-13 22:03:34 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:117 - - Number of channels: 1
+2025-04-13 22:03:34 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:120 - - Number of alternatives: 1
+2025-04-13 22:03:34 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:123 - - Has transcript: True
+2025-04-13 22:03:34 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:124 - - Transcript length: 5920
+2025-04-13 22:03:34 | INFO     | src.pipeline.transcription.transcriber:_send_to_deepgram:125 - - First 100 chars: Large language models. They are everywhere. They get some things amazingly right and other things ve
+2025-04-13 22:03:34 | INFO     | src.pipeline.transcription.transcriber:_save_transcription:171 - Saved transcription for video 201 (language: unknown)
+2025-04-13 22:03:34 | INFO     | src.pipeline.transcription.transcriber:transcribe:214 - Successfully transcribed video 201 (confidence: 0.99920887)
+2025-04-13 22:03:34 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 201 - transcribe_completed - VideoStatus.PROCESSING (45.0%)
+2025-04-13 22:03:34 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 201 - segment_started - VideoStatus.PROCESSING (76.66666666666667%)
+2025-04-13 22:03:34 | INFO     | src.pipeline.coordinator:_segment_video:229 - Starting segmentation for video 201
+2025-04-13 22:03:34 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 201 - segmentation_started - VideoStatus.SEGMENTING (76.66666666666667%)
+2025-04-13 22:03:42 | INFO     | src.pipeline.segmentation.processor:_save_segments:399 - Attempting to save 20 segments to database
+2025-04-13 22:03:42 | INFO     | src.pipeline.segmentation.processor:_save_segments:410 - Successfully saved 20 segments
+2025-04-13 22:03:42 | INFO     | src.pipeline.segmentation.processor:process_transcript:132 - Saved 20 segments for video 201
+2025-04-13 22:03:53 | INFO     | src.pipeline.segmentation.processor:_generate_video_summary:356 - Generated video summary with 5 key points
+2025-04-13 22:03:53 | INFO     | src.pipeline.segmentation.processor:_update_video_summary:572 - Updated summary and insights for video 201
+2025-04-13 22:03:53 | INFO     | src.pipeline.segmentation.processor:process_transcript:139 - Updated video 201 with summary
+2025-04-13 22:03:53 | INFO     | src.pipeline.coordinator:_segment_video:246 - Created 20 segments for video 201
+2025-04-13 22:03:53 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 201 - segmentation_completed - VideoStatus.PROCESSING (100.0%)
+2025-04-13 22:03:53 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 201 - segment_completed - VideoStatus.PROCESSING (76.66666666666667%)
+2025-04-13 22:03:53 | INFO     | src.pipeline.coordinator:_update_progress:118 - Video 201 - processing_completed - VideoStatus.COMPLETED (100%)
+2025-04-13 22:03:53 | INFO     | src.pipeline.video_processor:process_video:32 - Successfully processed video 201
+2025-04-13 22:03:53 | INFO     | src.api.services.video_service:process_video:134 - Video 201 processed successfully, starting cleanup

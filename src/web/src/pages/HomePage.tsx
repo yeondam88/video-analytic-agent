@@ -237,7 +237,11 @@ export function HomePage() {
         </div>
         <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl p-6">
           <h2 className="text-lg font-semibold mb-4">Recent Videos</h2>
-          <VideoGrid videos={gridVideos} isLoading={isLoading} />
+          <VideoGrid 
+            videos={gridVideos} 
+            isLoading={isLoading} 
+            onDeleteVideo={(videoId) => handleDelete(videoId, new Event('click') as any)}
+          />
         </div>
       </div>
 

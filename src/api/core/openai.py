@@ -2,19 +2,29 @@ import os
 import logging
 from openai import AsyncOpenAI
 from typing import Dict, Any, List
+from src.config import settings
 
 logger = logging.getLogger(__name__)
 
 class OpenAIService:
     def __init__(self):
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY environment variable is required")
-            
-        self.client = AsyncOpenAI(api_key=api_key)
+        """Initialize the OpenAI service.
+        If no API key is available, the service will be in a disabled state.
+        """
+        self.api_key = settings.services.OPENAI_API_KEY
+        self.enabled = bool(self.api_key)
+        
+        if not self.enabled:
+            logger.warning("OpenAI service is disabled: OPENAI_API_KEY environment variable is not set")
+        else:
+            self.client = AsyncOpenAI(api_key=self.api_key)
         
     async def create_embeddings(self, transcript: Dict[str, Any]) -> List[float]:
         """Create embeddings for the transcript text."""
+        if not self.enabled:
+            logger.warning("OpenAI embeddings skipped: Service is disabled")
+            return [0.0] * 1536  # Return empty embeddings
+            
         try:
             response = await self.client.embeddings.create(
                 model="text-embedding-3-small",
@@ -29,6 +39,15 @@ class OpenAIService:
             
     async def generate_summary(self, transcript: Dict[str, Any]) -> Dict[str, Any]:
         """Generate a summary of the transcript."""
+        if not self.enabled:
+            logger.warning("OpenAI summary generation skipped: Service is disabled")
+            return {
+                "title": "Summary Unavailable",
+                "summary": "Summary generation is disabled because the OpenAI API key is not configured.",
+                "key_points": ["API key not configured"],
+                "action_items": []
+            }
+            
         try:
             prompt = f"""
             Please analyze this transcript and provide a structured summary with the following:

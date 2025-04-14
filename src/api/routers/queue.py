@@ -1,12 +1,13 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import text
 from pydantic import BaseModel, HttpUrl
 from loguru import logger
 
 from src.api.database import get_db
 from src.api.services.queue_service import QueueService
-from src.db.models.queue import QueueStatus
+from src.db.models.queue import QueueStatus, QueueItem
 
 router = APIRouter()
 
@@ -149,6 +150,57 @@ async def clear_completed_items(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to clear completed items: {str(e)}"
+        )
+
+@router.post("/clear-failed")
+async def clear_failed_items(
+    db: Session = Depends(get_db),
+    delete_queue_items: bool = False
+):
+    """Clear all failed items by removing video references and deleting orphaned videos.
+    
+    Args:
+        delete_queue_items: If True, also delete the failed queue items themselves
+    """
+    try:
+        # Get failed queue items first (for count)
+        failed_items = db.query(QueueItem).filter(QueueItem.status == QueueStatus.FAILED).all()
+        failed_count = len(failed_items)
+        
+        # Execute raw SQL to break the foreign key constraint for failed items
+        db.execute(text("UPDATE queue_items SET video_id = NULL WHERE status = 'FAILED'"))
+        db.commit()
+        
+        # Delete orphaned videos
+        orphaned_result = db.execute(
+            text("DELETE FROM videos WHERE id NOT IN (SELECT video_id FROM queue_items WHERE video_id IS NOT NULL) RETURNING id")
+        )
+        deleted_video_ids = [row[0] for row in orphaned_result]
+        db.commit()
+        
+        # Clean up associated segments and transcriptions
+        db.execute(text("DELETE FROM segments WHERE video_id NOT IN (SELECT id FROM videos)"))
+        db.execute(text("DELETE FROM transcriptions WHERE video_id NOT IN (SELECT id FROM videos)"))
+        db.commit()
+        
+        deleted_queue_count = 0
+        if delete_queue_items:
+            # Delete the failed queue items themselves
+            deleted_queue_count = db.query(QueueItem).filter(QueueItem.status == QueueStatus.FAILED).delete()
+            db.commit()
+        
+        return {
+            "message": f"Cleared video references for {failed_count} failed items and deleted {len(deleted_video_ids)} orphaned videos",
+            "deleted_video_ids": deleted_video_ids,
+            "deleted_queue_items": deleted_queue_count if delete_queue_items else 0,
+            "remaining_failed_items": failed_count - (deleted_queue_count if delete_queue_items else 0)
+        }
+    except Exception as e:
+        logger.error(f"Failed to clear failed items: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to clear failed items: {str(e)}"
         )
 
 async def process_queue(db: Session):

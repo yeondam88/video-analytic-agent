@@ -10,10 +10,6 @@ import asyncio
 from src.db.models.video import Video
 from src.pipeline.types import VideoSource, VideoStatus
 from src.api.core.storage import StorageService
-from src.api.core.deepgram import DeepgramService
-from src.api.core.openai import OpenAIService
-from src.pipeline.video_processor import VideoProcessor
-from src.pipeline.video.downloader import VideoDownloader
 from src.api.database import db
 
 class VideoService:
@@ -21,13 +17,32 @@ class VideoService:
         """Initialize video service."""
         self.db = db_session
         self.storage = StorageService()
-        self.deepgram = DeepgramService()
-        self.openai = OpenAIService()
+        # Don't initialize these services here to avoid API key errors
+        # They will be initialized only when needed
+        self._deepgram = None
+        self._openai = None
+
+    @property
+    def deepgram(self):
+        """Lazy initialization of DeepgramService"""
+        if self._deepgram is None:
+            from src.api.core.deepgram import DeepgramService
+            self._deepgram = DeepgramService()
+        return self._deepgram
+
+    @property
+    def openai(self):
+        """Lazy initialization of OpenAIService"""
+        if self._openai is None:
+            from src.api.core.openai import OpenAIService
+            self._openai = OpenAIService()
+        return self._openai
 
     def extract_video_info(self, url: str) -> Tuple[VideoSource, str]:
         """Extract source and source_id from URL."""
         try:
             # Use VideoDownloader's parse_video_url method
+            from src.pipeline.video.downloader import VideoDownloader
             source, source_id = VideoDownloader.parse_video_url(url)
             return source, source_id
         except ValueError as e:
@@ -111,6 +126,7 @@ class VideoService:
         """Process a video through the pipeline."""
         try:
             logger.info(f"Starting video processing for video {video_id}")
+            from src.pipeline.video_processor import VideoProcessor
             processor = VideoProcessor()
             success = await processor.process_video(video_id)
             

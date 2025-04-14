@@ -1,0 +1,14 @@
+2025-04-13 21:22:41 | ERROR    | src.pipeline.transcription.transcriber:transcribe:206 - Empty transcript received from Deepgram
+2025-04-13 21:22:52 | ERROR    | src.pipeline.transcription.transcriber:transcribe:206 - Empty transcript received from Deepgram
+2025-04-13 21:23:06 | ERROR    | src.pipeline.transcription.transcriber:transcribe:206 - Empty transcript received from Deepgram
+2025-04-13 21:23:06 | ERROR    | src.pipeline.transcription.transcriber:transcribe:217 - Failed to get valid transcript after 3 attempts
+2025-04-13 21:23:06 | ERROR    | src.pipeline.coordinator:_execute_step:153 - transcribe step failed without error
+2025-04-13 21:23:06 | ERROR    | src.pipeline.video_processor:process_video:37 - Failed to process video 196
+2025-04-13 21:23:10 | ERROR    | src.api.routers.queue:get_queue_items:109 - Failed to get queue items: 1 validation error for QueueItemResponse
+video_id
+  Input should be a valid string [type=string_type, input_value=183, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+2025-04-13 21:38:16 | ERROR    | src.api.services.queue_service:process_next:112 - Failed to process queue item b01f30a4-946e-438f-9c2d-b17f3efcfe80: Cannot run the event loop while another loop is running
+2025-04-13 21:41:15 | ERROR    | src.api.routers.queue:clear_failed_items:186 - Failed to clear failed items: Textual SQL expression 'UPDATE queue_items SET vi...' should be explicitly declared as text('UPDATE queue_items SET vi...')
+2025-04-13 21:41:57 | ERROR    | src.api.routers.queue:clear_failed_items:187 - Failed to clear failed items: name 'QueueItem' is not defined
+2025-04-13 21:42:32 | ERROR    | src.api.services.queue_service:process_next:112 - Failed to process queue item b01f30a4-946e-438f-9c2d-b17f3efcfe80: Cannot run the event loop while another loop is running
