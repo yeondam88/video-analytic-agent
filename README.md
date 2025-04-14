@@ -2,7 +2,7 @@
 
 A comprehensive pipeline for processing, analyzing, and exploring video content with AI-powered features including transcription, segmentation, summarization, and semantic search.
 
-![Video Analytics Dashboard](docs/dashboard-screenshot.gif)
+![Video Analytics Dashboard](docs/demo.gif)
 *The dashboard shows a grid view of processed videos with thumbnails, titles, and interactive elements for accessing video content and AI-generated insights.*
 
 ## System Overview
